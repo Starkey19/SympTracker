@@ -16,7 +16,24 @@
 
     <!--Preferences / settings values-->
     <string name="title_first_section">First section</string>
-    <string name="title_checkbox_section">Checkbox section</string>
-    <string name="default_checkbox_section">First section</string>
+    <string name="title_checkbox_preference">Checkbox section</string>
+    <string name="default_checkbox_preference">Default checkbox</string>
+    <string name="title_edittext_preference">edittext title</string>
+    <string name="summary_edittext_preference">edittext summary</string>
+    <string name="dialog_title_edittext_preference">edittext dialog title</string>
+
+    <string name="title_second_section">second section title</string>
+    <string name="title_list_preference">list title</string>
+    <string name="dialog_title_list_preference">dialog list title</string>
+
+    <string-array name="entries_list_preference">
+        <item>one</item>
+        <item>two</item>
+    </string-array>
+    <string-array name="entryvalues_list_preference">
+        <item>one v</item>
+        <item>two v</item>
+    </string-array>
+    <string name="title_intent_preference">intent title</string>
 
 </resources>

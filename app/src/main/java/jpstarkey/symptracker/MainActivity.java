@@ -2,7 +2,7 @@ package jpstarkey.symptracker;
 
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.support.design.internal.NavigationMenu;
+import android.preference.PreferenceFragment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
@@ -10,11 +10,11 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
-import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity
-        implements daily.OnFragmentInteractionListener
+        implements Daily.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener
 {
 
     //Navigation drawer
@@ -103,19 +103,32 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment = null;
         Class fragmentClass;
         switch(menuItem.getItemId()) {
-            case R.id.nav_first_fragment:
-                fragmentClass = daily.class;//FirstFragment.class;
+            case R.id.nav_daily_fragment:
+                fragmentClass = Daily.class;
                 break;
-            case R.id.nav_second_fragment:
-                fragmentClass = daily.class;//SecondFragment.class;
+            case R.id.nav_symptoms_fragment:
+                fragmentClass = Daily.class;
                 break;
-            case R.id.nav_third_fragment:
-                fragmentClass = daily.class;//ThirdFragment.class;
+            case R.id.nav_activities_fragment:
+                fragmentClass = Daily.class;
+                break;
+            case R.id.nav_medications_fragment:
+                fragmentClass = Daily.class;
+                break;
+            case R.id.nav_settings_fragment:
+                fragmentClass = SettingsFragment.class;
                 break;
             default:
-                fragmentClass = daily.class;//FirstFragment.class;
+                fragmentClass = MainActivity.class;
         }
 
+        if (fragmentClass == null)
+        {
+            fragmentClass = MainActivity.class;
+            Log.e("Fragment", "Fragment is null in navigation drawer");
+        }
+
+       // if (fragmentClass.getSuperclass() == PreferenceFragment.())
         try {
             fragment = (Fragment) fragmentClass.newInstance();
         } catch (Exception e) {

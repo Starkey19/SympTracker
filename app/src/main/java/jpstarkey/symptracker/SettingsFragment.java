@@ -3,25 +3,27 @@ package jpstarkey.symptracker;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+//import android.preference.PreferenceFragment;
+import android.preference.PreferenceFragment;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link daily.OnFragmentInteractionListener} interface
+ * {@link SettingsFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link daily#newInstance} factory method to
+ * Use the {@link SettingsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class daily extends Fragment
+public class SettingsFragment
+        extends PreferenceFragmentCompat
 {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -34,10 +36,16 @@ public class daily extends Fragment
 
     private OnFragmentInteractionListener mListener;
 
-    public daily()
+    public SettingsFragment()
     {
         // Required empty public constructor
     }
+
+//    @Override
+//    public void onCreatePreferences (Bundle savedInstanceState, String rootKey)
+//    {
+//        //Preferences XML file
+//    }
 
     /**
      * Use this factory method to create a new instance of
@@ -45,12 +53,12 @@ public class daily extends Fragment
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment daily.
+     * @return A new instance of fragment SettingsFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static daily newInstance(String param1, String param2)
+    public static SettingsFragment newInstance(String param1, String param2)
     {
-        daily fragment = new daily();
+        SettingsFragment fragment = new SettingsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -62,6 +70,10 @@ public class daily extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        //Load from XML res
+       // addPreferencesFromResource(R.xml.preferences);
+
         if (getArguments() != null)
         {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -70,21 +82,19 @@ public class daily extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
+    public void onCreatePreferencesFix(@Nullable Bundle savedInstanceState, String rootKey)
     {
-        View view = inflater.inflate(R.layout.fragment_daily, container, false);
-        GraphView graph = (GraphView) view.findViewById(R.id.daily);
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
-        });
-        graph.addSeries(series);
+        setPreferencesFromResource(R.xml.preferences, rootKey);
+    }
 
-        return view;
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                            @Nullable Bundle savedInstanceState)
+    {
+        // Inflate the layout for this fragment
+        //return inflater.inflate(R.layout.fragment_settings, container, false);
+
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
