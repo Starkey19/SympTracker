@@ -1,8 +1,10 @@
 package jpstarkey.symptracker;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.Context;
+import android.util.Log;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -62,6 +64,8 @@ public class MyIntentService extends IntentService
     @Override
     protected void onHandleIntent(Intent intent)
     {
+        Log.i("MyIntentService", "Service running");
+
         if (intent != null)
         {
             final String action = intent.getAction();
@@ -99,3 +103,4 @@ public class MyIntentService extends IntentService
         throw new UnsupportedOperationException("Not yet implemented");
     }
 }
+

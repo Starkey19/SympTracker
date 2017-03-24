@@ -35,5 +35,6 @@
         <item>two v</item>
     </string-array>
     <string name="title_intent_preference">intent title</string>
+    <string name="home_welcome_text">Welcome to SympTracker, Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus scelerisque enim nec ornare. In hac habitasse platea dictumst. Donec eget elit lobortis ex rhoncus egestas fringilla eu est. Aenean volutpat dui nec porttitor elementum. Sed sit amet fermentum dolor. Aenean bibendum consectetur imperdiet.</string>
 
 </resources>

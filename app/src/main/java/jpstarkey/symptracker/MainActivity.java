@@ -1,12 +1,20 @@
 package jpstarkey.symptracker;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.preference.PreferenceFragment;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.os.ResultReceiver;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -46,7 +54,9 @@ import static java.text.DateFormat.getTimeInstance;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 public class MainActivity extends AppCompatActivity
-        implements Daily.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener
+        implements Daily.OnFragmentInteractionListener,
+        SettingsFragment.OnFragmentInteractionListener,
+        Home.OnFragmentInteractionListener
 {
 
     //Navigation drawer
@@ -87,6 +97,10 @@ public class MainActivity extends AppCompatActivity
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         setupDrawerContent(nvDrawer);
 
+        //Set the home page on first load
+        MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
+
+        selectDrawerItem(homeItem);
         //Google fitness API:
         if(savedInstanceState != null)
         {
@@ -95,6 +109,7 @@ public class MainActivity extends AppCompatActivity
 
         buildFitnessClient();
 
+        createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
     }
 
     //region Google Fit API
@@ -398,7 +413,7 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-    //region navigation drawer business logic
+    //region Navigation drawer business logic
     private void setupDrawerContent(NavigationView navigationView)
     {
         navigationView.setNavigationItemSelectedListener(
@@ -422,6 +437,9 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment = null;
         Class fragmentClass;
         switch(menuItem.getItemId()) {
+            case R.id.nav_home_fragment:
+                fragmentClass = Home.class;
+                break;
             case R.id.nav_daily_fragment:
                 fragmentClass = Daily.class;
                 break;
@@ -474,5 +492,39 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    //region Background service
+    public void launchBackgroundService()
+    {
+        //Construct the intent service
+        Intent i = new Intent(this, MyIntentService.class);
+        //Add extras? TODO
+        i.putExtra("foo", "bar");
+        //Start the service
+        startService(i);
+    }
+    //endregion
+
+    //region Notifications
+    private void createNotification(int nId, int iconRes, String title, String body) {
+
+        Intent intent = new Intent(this, Daily.class);
+        int requestID = (int) System.currentTimeMillis();
+        int flags = PendingIntent.FLAG_CANCEL_CURRENT;
+        PendingIntent pIntent = PendingIntent.getActivity(this, requestID, intent, flags);
+
+        Notification noti = new NotificationCompat.Builder(this)
+                .setSmallIcon(iconRes)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setContentIntent(pIntent)
+                .setAutoCancel(true) //Hides notification after selected
+                .build();
+
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(nId, noti);
+    }
+    //endregion
 
 }

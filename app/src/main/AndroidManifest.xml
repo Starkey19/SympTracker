@@ -16,7 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".myAlarmReceiver"
+            android:process=":remote">
 
+        </receiver>
         <service
             android:name=".MyIntentService"
             android:exported="false">
