@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.jjoe64.graphview.GraphView
-            android:id="@+id/daily"
+            android:id="@+id/weekly"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginEnd="16dp"

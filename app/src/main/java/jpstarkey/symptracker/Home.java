@@ -29,6 +29,7 @@ public class Home extends Fragment
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private MyFragmentCallBack callBack;
 
     public Home()
     {
@@ -85,6 +86,7 @@ public class Home extends Fragment
     @Override
     public void onAttach(Context context)
     {
+        callBack = (MyFragmentCallBack) context;
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener)
         {
@@ -103,6 +105,11 @@ public class Home extends Fragment
         mListener = null;
     }
 
+    public void ScheduleAlarm(View view)
+    {
+        callBack.theMethod();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -117,5 +124,10 @@ public class Home extends Fragment
     {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    public interface MyFragmentCallBack
+    {
+        public void theMethod();
     }
 }

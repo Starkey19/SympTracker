@@ -4,43 +4,27 @@ import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.data.DataSet;
-import com.google.android.gms.fitness.data.DataType;
-import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.result.DailyTotalResult;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-
-import static android.os.Build.VERSION_CODES.M;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link Daily.OnFragmentInteractionListener} interface
+ * {@link Report.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link Daily#newInstance} factory method to
+ * Use the {@link Report#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Daily extends Fragment
+public class Report extends Fragment
 {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -51,16 +35,9 @@ public class Daily extends Fragment
     private String mParam1;
     private String mParam2;
 
-    public static final String TAG = "BasicHistoryApi";
-    private static final String AUTH_PENDING = "auth_state_pending";
-    private static boolean authInProgress = false;
-    private GoogleApiClient mClient = null;
-    private static final int REQUEST_OAUTH = 1;
-    private float scaledStepCount = 0;
-
     private OnFragmentInteractionListener mListener;
 
-    public Daily()
+    public Report()
     {
         // Required empty public constructor
     }
@@ -71,20 +48,18 @@ public class Daily extends Fragment
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment Daily.
+     * @return A new instance of fragment Report.
      */
     // TODO: Rename and change types and number of parameters
-    public static Daily newInstance(String param1, String param2)
+    public static Report newInstance(String param1, String param2)
     {
-        Daily fragment = new Daily();
+        Report fragment = new Report();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -101,8 +76,8 @@ public class Daily extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        View view = inflater.inflate(R.layout.fragment_daily, container, false);
-        GraphView graph = (GraphView) view.findViewById(R.id.daily);
+        View view = inflater.inflate(R.layout.fragment_weekly, container, false);
+        GraphView graph = (GraphView) view.findViewById(R.id.weekly);
 
 
         MainActivity activity = (MainActivity) getActivity();
@@ -110,21 +85,21 @@ public class Daily extends Fragment
         //bounds nad scaling and scrolling:
         graph.getViewport().setYAxisBoundsManual(true);
         graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(10);
+        graph.getViewport().setMaxY(2500);
 
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(10);
+        graph.getViewport().setMaxX(7);
 
         graph.getViewport().setScalable(true);
         graph.getViewport().setScalableY(true);
 
         BarGraphSeries<DataPoint> series = new BarGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 2),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
+                new DataPoint(0, 2500),
+                new DataPoint(1, 500),
+                new DataPoint(2, 300),
+                new DataPoint(3, 200),
+                new DataPoint(4, 600)
         });
         graph.addSeries(series);
 
