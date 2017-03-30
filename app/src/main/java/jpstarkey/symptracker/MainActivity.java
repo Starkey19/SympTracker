@@ -120,7 +120,33 @@ public class MainActivity extends AppCompatActivity
 
         createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
 
+        databaseTest();
+
         //scheduleAlarm();
+
+
+    }
+
+    public void databaseTest()
+    {
+        //sample data
+        Symptom symp = new Symptom();
+        symp.name = "poop";
+
+        Medication med = new Medication();
+        med.name = "poopFixer";
+        med.amount = 9000;
+
+        //get a instance of the DB helper
+        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(this);
+
+        //add the sample data
+        databaseHelper.addSymptom(symp);
+        databaseHelper.addMedication(med);
+
+        List<Symptom> symptoms = databaseHelper.getAllSymptoms();
+
+        List<Medication> meds = databaseHelper.getAllMedications();
 
 
     }
