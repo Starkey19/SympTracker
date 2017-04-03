@@ -64,7 +64,8 @@ public class MainActivity extends AppCompatActivity
         SettingsFragment.OnFragmentInteractionListener,
         Home.OnFragmentInteractionListener,
         Home.MyFragmentCallBack,
-        Report.OnFragmentInteractionListener
+        Report.OnFragmentInteractionListener,
+        Medications.OnFragmentInteractionListener
 {
 
     //Navigation drawer
@@ -603,12 +604,13 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_activities_fragment:
                 fragmentClass = Daily.class;
                 break;
-            case R.id.nav_medications_fragment:
-                fragmentClass = Daily.class;
-                break;
             case R.id.nav_settings_fragment:
                 fragmentClass = SettingsFragment.class;
                 break;
+            case R.id.nav_medications_fragment:
+                fragmentClass = Medications.class;
+                break;
+
             default:
                 fragmentClass = MainActivity.class;
                 break;

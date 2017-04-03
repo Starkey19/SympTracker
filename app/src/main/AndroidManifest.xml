@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="jpstarkey.symptracker"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:replace="allowBackup, label"
+          android:allowBackup="false"
+          android:label="SympTracker">
+
+    <!-- To access Google+ APIs: -->
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
+        tools:node="replace"
         android:allowBackup="true"
         android:icon="@drawable/ic_accessibility"
         android:label="@string/app_name"
@@ -16,11 +24,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
         <receiver
             android:name=".myAlarmReceiver"
             android:process=":remote">
-
         </receiver>
+
         <service
             android:name=".MyIntentService"
             android:exported="false">

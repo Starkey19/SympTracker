@@ -1,0 +1,47 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             tools:context="jpstarkey.symptracker.Medications">
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="139dp"
+        android:layout_height="35dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/title_medications"
+        android:gravity="center_vertical"
+        android:text="@string/title_medications"
+        android:textAppearance="@android:style/TextAppearance.Large"
+        android:textColor="@android:color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/title_medications"/>
+
+
+
+    <View style="@style/Divider"
+          android:layout_marginTop="16dp"
+          android:background="@color/divider"
+          app:layout_constraintTop_toBottomOf="@+id/tvTitle"
+          android:layout_height="0dp"
+          android:layout_width="0dp"
+          app:layout_constraintRight_toRightOf="parent"
+          app:layout_constraintLeft_toLeftOf="parent"
+          app:layout_constraintHorizontal_bias="0.0"
+          android:id="@+id/view"
+          android:layout_marginBottom="0dp"
+          app:layout_constraintBottom_toTopOf="parent"/>
+
+</android.support.constraint.ConstraintLayout>
+</FrameLayout>

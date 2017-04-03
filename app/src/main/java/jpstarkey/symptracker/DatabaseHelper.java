@@ -215,7 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     Medication newMed = new Medication();
                     newMed.name = cursor.getString(cursor.getColumnIndex(KEY_MEDICATION_NAME));
                     newMed.amount = cursor.getInt(cursor.getColumnIndex(KEY_MEDICATION_AMOUNT));
-
+                    meds.add((newMed));
                 } while(cursor.moveToNext());
             }
         } catch (Exception e)
