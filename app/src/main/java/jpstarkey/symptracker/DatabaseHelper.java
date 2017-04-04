@@ -23,19 +23,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static DatabaseHelper sInstance; //For singleton implementation
 
     //Database info
-    private static final String DATABASE_NAME = "symptDatabase";
+    private static final String DATABASE_NAME = "sympDatabase";
     private static final int DATABASE_VERSION = 1;
 
     //Table names
-    private static final String TABLE_SYMPTOMS = "symptoms";
+    private static final String TABLE_SYMPTOMS = "Symptoms";
     private static final String TABLE_MEDICATIONS = "Medications";
 
     //Symptoms table columns
-    private static final String KEY_SYMPTOM_ID = "id";
+    private static final String KEY_SYMPTOM_ID = "_id";
     private static final String KEY_SYMPTOM_NAME = "SymptomName";
 
     //Medication table columns
-    private static final String KEY_MEDICATION_ID = "id";
+    private static final String KEY_MEDICATION_ID = "_id";
     private static final String KEY_MEDICATION_NAME = "MedicationName";
     private static final String KEY_MEDICATION_AMOUNT = "MedicationAmount";
     //TODO - Medication frequency etc..

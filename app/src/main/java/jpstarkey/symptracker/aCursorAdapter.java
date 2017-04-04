@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
+import static android.R.attr.priority;
+
 /**
  * Created by Joshs on 31/03/2017.
  */
@@ -34,21 +36,11 @@ public class aCursorAdapter extends CursorAdapter
         TextView sympBody = (TextView) view.findViewById(R.id.symptomBody);
         TextView sympPriority = (TextView) view.findViewById(R.id.symptomPriority);
         //Extract from cursor
-        String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-        int priority = cursor.getInt(cursor.getColumnIndexOrThrow("priority"));
+        String body = cursor.getString(cursor.getColumnIndexOrThrow("SymptomName"));
+        //int priority = cursor.getInt(cursor.getColumnIndexOrThrow("armount"));
 
         //Populate fields with extracted properties
         sympBody.setText(body);
         sympPriority.setText(String.valueOf(priority));
-    }
-
-    public void todo()
-    {
-//        // TodoDatabaseHandler is a SQLiteOpenHelper class connecting to SQLite
-//        TodoDatabaseHandler handler = new TodoDatabaseHandler(this);
-//// Get access to the underlying writeable database
-//        SQLiteDatabase db = handler.getWritableDatabase();
-//// Query for items from the database and get a cursor back
-//        Cursor todoCursor = db.rawQuery("SELECT  * FROM todo_items", null);
     }
 }

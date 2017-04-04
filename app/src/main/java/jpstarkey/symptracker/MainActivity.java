@@ -65,7 +65,8 @@ public class MainActivity extends AppCompatActivity
         Home.OnFragmentInteractionListener,
         Home.MyFragmentCallBack,
         Report.OnFragmentInteractionListener,
-        Medications.OnFragmentInteractionListener
+        Medications.OnFragmentInteractionListener,
+        Symptoms.OnFragmentInteractionListener
 {
 
     //Navigation drawer
@@ -145,9 +146,9 @@ public class MainActivity extends AppCompatActivity
         databaseHelper.addSymptom(symp);
         databaseHelper.addMedication(med);
 
-        List<Symptom> symptoms = databaseHelper.getAllSymptoms();
+        //List<Symptom> symptoms = databaseHelper.getAllSymptoms();
 
-        List<Medication> meds = databaseHelper.getAllMedications();
+        //List<Medication> meds = databaseHelper.getAllMedications();
 
 
     }
@@ -599,7 +600,7 @@ public class MainActivity extends AppCompatActivity
                 fragmentClass = Report.class;
                 break;
             case R.id.nav_symptoms_fragment:
-                fragmentClass = Daily.class;
+                fragmentClass = Symptoms.class;
                 break;
             case R.id.nav_activities_fragment:
                 fragmentClass = Daily.class;
