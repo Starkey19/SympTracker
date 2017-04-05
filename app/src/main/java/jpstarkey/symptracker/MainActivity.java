@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceFragment;
 import android.renderscript.Element;
@@ -46,6 +47,8 @@ import com.google.android.gms.fitness.request.DataUpdateRequest;
 import com.google.android.gms.fitness.result.DailyTotalResult;
 import com.google.android.gms.fitness.result.DataReadResult;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -129,6 +132,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+
+
     public void databaseTest()
     {
         //sample data
@@ -145,6 +150,14 @@ public class MainActivity extends AppCompatActivity
         //add the sample data
         databaseHelper.addSymptom(symp);
         databaseHelper.addMedication(med);
+        try
+        {
+            databaseHelper.copyDB();
+        } catch (IOException e)
+        {
+            Log.i("TAG", e.getMessage());
+        }
+
 
         //List<Symptom> symptoms = databaseHelper.getAllSymptoms();
 

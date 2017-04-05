@@ -3,11 +3,21 @@ package jpstarkey.symptracker;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
     private static final int DATABASE_VERSION = 1;
+    private static String DB_PATH = "";
 
     //Table names
     private static final String TABLE_SYMPTOMS = "Symptoms";
@@ -39,6 +50,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static final String KEY_MEDICATION_NAME = "MedicationName";
     private static final String KEY_MEDICATION_AMOUNT = "MedicationAmount";
     //TODO - Medication frequency etc..
+
+
 
     //region Database setup methods
 
@@ -61,7 +74,17 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //so instantiation is always handled by "getInstance()" instead
     private DatabaseHelper(Context context)
     {
+
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+        {
+            DB_PATH = context.getFilesDir().getAbsolutePath().replace("files", "databases") + File.separator;
+        }
+        else
+            {
+            DB_PATH = context.getFilesDir().getPath() + context.getPackageName() + "/databases/";
+        }
     }
 
     //Called when the db connection is being configured,
@@ -159,6 +182,26 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
     }
 
+    public void copyDB() throws IOException
+    {
+        File sd = Environment.getExternalStorageDirectory();
+
+        if (sd.canWrite())
+        {
+            String currentDbPath = DATABASE_NAME;
+            String backupDbPath = "sympDatabase.db";
+            File currentDB = new File(DB_PATH, currentDbPath);
+            File backupDB = new File(sd, backupDbPath);
+
+            if (currentDB.exists()) {
+                FileChannel src = new FileInputStream(currentDB).getChannel();
+                FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                dst.transferFrom(src, 0, src.size());
+                src.close();
+                dst.close();
+            }
+        }
+    }
 
     //endregion
 
@@ -269,4 +312,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
     }
     //endregion
+
+
+
 }
+
