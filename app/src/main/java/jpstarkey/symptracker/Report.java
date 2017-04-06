@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,13 @@ import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static android.R.attr.data;
 
 
 /**
@@ -81,7 +89,8 @@ public class Report extends Fragment
 
 
         MainActivity activity = (MainActivity) getActivity();
-        float data = activity.getDailySteps();
+        LinkedHashMap<Date, Integer> data = activity.returnStepsForWeek();
+
         //bounds nad scaling and scrolling:
         graph.getViewport().setYAxisBoundsManual(true);
         graph.getViewport().setMinY(0);
@@ -94,33 +103,45 @@ public class Report extends Fragment
         graph.getViewport().setScalable(true);
         graph.getViewport().setScalableY(true);
 
-        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 2500),
-                new DataPoint(1, 500),
-                new DataPoint(2, 300),
-                new DataPoint(3, 200),
-                new DataPoint(4, 600)
-        });
+        //Create an array of dataPoints containing the graph data
+        ArrayList<DataPoint> dps = new ArrayList<>();
+        for (Map.Entry<Date, Integer> entry : data.entrySet())
+        {
+            DataPoint v = new DataPoint(entry.getKey(), entry.getValue());
+            dps.add(v);
+            Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
+        }
+
+        DataPoint[] dpsFinal = new DataPoint[dps.size()];
+
+        for (int i=0; i<dps.size(); i++)
+        {
+            dpsFinal[i] = dps.get(i);
+        }
+
+        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dpsFinal);
+
         graph.addSeries(series);
 
-        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 3),
-                new DataPoint(1, 3),
-                new DataPoint(2, 6),
-                new DataPoint(3, 2),
-                new DataPoint(4, 5)
-        });
-        graph.addSeries(series2);
+//        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
+//                new DataPoint(0, 3),
+//                new DataPoint(1, 3),
+//                new DataPoint(2, 6),
+//                new DataPoint(3, 2),
+//                new DataPoint(4, 5)
+//        });
+//        graph.addSeries(series2);
 
         //legend:
         series.setTitle("Steps");
         series.setColor(Color.parseColor("#607D8B"));
-        series2.setTitle("Pain");
-        series2.setColor(Color.parseColor("#F2972E"));
+//        series2.setTitle("Pain");
+//        series2.setColor(Color.parseColor("#F2972E"));
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
         return view;
     }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri)

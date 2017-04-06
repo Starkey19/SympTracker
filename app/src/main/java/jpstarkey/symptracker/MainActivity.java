@@ -31,6 +31,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
@@ -53,10 +54,14 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Build.VERSION_CODES.M;
+import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getTimeInstance;
 
@@ -123,17 +128,16 @@ public class MainActivity extends AppCompatActivity
 
         buildFitnessClient();
 
-        createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
+        //createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
 
-        databaseTest();
 
-        //scheduleAlarm();
+        //returnStepsForDay();
 
 
     }
 
 
-
+    //TODO remove
     public void databaseTest()
     {
         //sample data
@@ -187,10 +191,7 @@ public class MainActivity extends AppCompatActivity
                                 Log.i(TAG, "Connected!!!");
                                 // Now you can make calls to the Fitness APIs.  What to do?
                                 // Look at some data!!
-                                new InsertAndVerifyDataTask().execute();
-
-
-
+                                //new getWeeklyDataTask().execute();
                             }
 
                             @Override
@@ -224,7 +225,7 @@ public class MainActivity extends AppCompatActivity
     {
         if (mClient.isConnected())
         {
-            Fitness.HistoryApi.readDailyTotal(mClient, DataType.TYPE_STEP_COUNT_DELTA)
+            Fitness.HistoryApi.readDailyTotal(mClient, TYPE_STEP_COUNT_DELTA)
                     .setResultCallback(new ResultCallback<DailyTotalResult>()
                     {
                         @Override
@@ -262,6 +263,137 @@ public class MainActivity extends AppCompatActivity
         scheduleAlarm();
     }
 
+    //TODO: refactor
+
+
+    //TODO refactor
+    //Try to return no of steps for a specific day from GFIT API
+    public class getWeeklyDataTask extends AsyncTask<LinkedHashMap<Void, Void, Void>
+    {
+        protected Void doInBackground(Void... params) {
+            LinkedHashMap<Date, Integer> days = new LinkedHashMap<>();
+
+            Calendar C = Calendar.getInstance();
+            C.setTime(new Date());
+            long end = 0;
+            long start = 0;
+            for (int i = 1; i < 7; i++)
+            {
+                //If we just started, get the current day as end
+                if (i == 1)
+                {
+                    end = C.getTimeInMillis();
+                }
+
+                //Go back a day
+                C.add(Calendar.DAY_OF_WEEK, -1);
+                start = C.getTimeInMillis();
+
+                Log.i("TAG", "start:" + new Date(start).toString() + "end" + new Date(end).toString());
+                days.put(new Date(end), getStepsCount(start, end));
+                end = start;
+            }
+
+            for (Map.Entry<Date, Integer> entry : days.entrySet())
+            {
+                Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
+            }
+
+            return null;
+        }
+
+        public int getStepsCount(long startTime, long endTime) {
+            DataSource ESTIMATED_STEP_DELTAS = new DataSource.Builder()
+                    .setDataType(TYPE_STEP_COUNT_DELTA)
+                    .setType(DataSource.TYPE_DERIVED)
+                    .setStreamName("estimated_steps")
+                    .setAppPackageName("com.google.android.gms").build();
+            PendingResult<DataReadResult> pendingResult = Fitness.HistoryApi
+                    .readData(
+                            mClient,
+                            new DataReadRequest.Builder()
+                                    .aggregate(TYPE_STEP_COUNT_DELTA,
+                                            DataType.AGGREGATE_STEP_COUNT_DELTA)
+                                    .bucketByTime(1, TimeUnit.DAYS)
+                                    .setTimeRange(startTime, endTime,
+                                            TimeUnit.MILLISECONDS).build());
+            int steps = 0;
+            DataReadResult dataReadResult = pendingResult.await();
+            if (dataReadResult.getBuckets().size() > 0) {
+                //Log.e("TAG", "Number of returned buckets of DataSets is: "
+                //+ dataReadResult.getBuckets().size());
+                for (Bucket bucket : dataReadResult.getBuckets()) {
+                    List<DataSet> dataSets = bucket.getDataSets();
+                    for (DataSet dataSet : dataSets) {
+                        for (DataPoint dp : dataSet.getDataPoints()) {
+                            for (Field field : dp.getDataType().getFields()) {
+                                steps += dp.getValue(field).asInt();
+                            }
+                        }
+                    }
+                }
+            } else if (dataReadResult.getDataSets().size() > 0) {
+                for (DataSet dataSet : dataReadResult.getDataSets()) {
+                    for (DataPoint dp : dataSet.getDataPoints()) {
+                        for (Field field : dp.getDataType().getFields()) {
+                            steps += dp.getValue(field).asInt();
+                        }
+                    }
+                }
+            }
+            return steps;
+        }
+    }
+
+
+
+    /**
+     * Log a record of the query result. It's possible to get more constrained data sets by
+     * specifying a data source or data type, but for demonstrative purposes here's how one would
+     * dump all the data. In this sample, logging also prints to the device screen, so we can see
+     * what the query returns, but your app should not log fitness information as a privacy
+     * consideration. A better option would be to dump the data you receive to a local data
+     * directory to avoid exposing it to other applications.
+     */
+    public static void printData(DataReadResult dataReadResult) {
+        // [START parse_read_data_result]
+        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
+        // as buckets containing DataSets, instead of just DataSets.
+        if (dataReadResult.getBuckets().size() > 0) {
+            Log.i(TAG, "Number of returned buckets of DataSets is: "
+                    + dataReadResult.getBuckets().size());
+            for (Bucket bucket : dataReadResult.getBuckets()) {
+                List<DataSet> dataSets = bucket.getDataSets();
+                for (DataSet dataSet : dataSets) {
+                    dumpDataSet(dataSet);
+                }
+            }
+        } else if (dataReadResult.getDataSets().size() > 0) {
+            Log.i(TAG, "Number of returned DataSets is: "
+                    + dataReadResult.getDataSets().size());
+            for (DataSet dataSet : dataReadResult.getDataSets()) {
+                dumpDataSet(dataSet);
+            }
+        }
+        // [END parse_read_data_result]
+    }
+
+    private static void dumpDataSet(DataSet dataSet) {
+        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+        DateFormat dateFormat = getTimeInstance();
+
+        for (DataPoint dp : dataSet.getDataPoints()) {
+            Log.i(TAG, "Data point:");
+            Log.i(TAG, "\tType: " + dp.getDataType().getName());
+            Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            for(Field field : dp.getDataType().getFields()) {
+                Log.i(TAG, "\tField: " + field.getName() +
+                        " Value: " + dp.getValue(field));
+            }
+        }
+    }
+
     /**
      *  Create a {@link DataSet} to insert data into the History API, and
      *  then create and execute a {@link DataReadRequest} to verify the insertion succeeded.
@@ -271,53 +403,32 @@ public class MainActivity extends AppCompatActivity
      *  An example of an asynchronous call using a callback can be found in the example
      *  on deleting data below.
      */
-    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, Void>
-    {
-        protected Void doInBackground(Void... params) {
-            // Create a new dataset and insertion request.
-//            DataSet dataSet = insertFitnessData();
+//    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, Void>
+//    {
+//        protected Void doInBackground(Void... params) {
 //
-//            // [START insert_dataset]
-//            // Then, invoke the History API to insert the data and await the result, which is
-//            // possible here because of the {@link AsyncTask}. Always include a timeout when calling
-//            // await() to prevent hanging that can occur from the service being shutdown because
-//            // of low memory or other conditions.
-//            Log.i(TAG, "Inserting the dataset in the History API.");
-//            com.google.android.gms.common.api.Status insertStatus =
-//                    Fitness.HistoryApi.insertData(mClient, dataSet)
-//                            .await(1, TimeUnit.MINUTES);
 //
-//            // Before querying the data, check to see if the insertion succeeded.
-//            if (!insertStatus.isSuccess()) {
-//                Log.i(TAG, "There was a problem inserting the dataset.");
-//                return null;
-//            }
+//            // Begin by creating the query.
 //
-//            // At this point, the data has been inserted and can be read.
-//           Log.i(TAG, "Data insert was successful!");
-//            // [END insert_dataset]
-
-            // Begin by creating the query.
-
-            // Setting a start and end date using a range of 1 week before this moment.
-            Calendar cal = Calendar.getInstance();
-            Date now = new Date();
-            cal.setTime(now);
-            long endTime = cal.getTimeInMillis();
-            cal.add(Calendar.DAY_OF_WEEK, -2);
-            long startTime = cal.getTimeInMillis();
-
-            DataReadRequest readRequest = queryWeekFitnessData(startTime, endTime);
-            // [START read_dataset]
-            // Invoke the History API to fetch the data with the query and await the result of
-            // the read request.
-            DataReadResult dataReadResult =
-                    Fitness.HistoryApi.readData(mClient, readRequest).await(1, TimeUnit.MINUTES);
-            // [END read_dataset]
-
-            // For the sake of the sample, we'll print the data so we can see what we just added.
-            // In general, logging fitness information should be avoided for privacy reasons.
-            printData(dataReadResult);
+//            // Setting a start and end date using a range of 1 week before this moment.
+//            Calendar cal = Calendar.getInstance();
+//            Date now = new Date();
+//            cal.setTime(now);
+//            long endTime = cal.getTimeInMillis();
+//            cal.add(Calendar.DAY_OF_WEEK, -2);
+//            long startTime = cal.getTimeInMillis();
+//
+//            DataReadRequest readRequest = queryWeekFitnessData(startTime, endTime);
+//            // [START read_dataset]
+//            // Invoke the History API to fetch the data with the query and await the result of
+//            // the read request.
+//            DataReadResult dataReadResult =
+//                    Fitness.HistoryApi.readData(mClient, readRequest).await(1, TimeUnit.MINUTES);
+//            // [END read_dataset]
+//
+//            // For the sake of the sample, we'll print the data so we can see what we just added.
+//            // In general, logging fitness information should be avoided for privacy reasons.
+//            printData(dataReadResult);
 //
 //            Calendar cal = Calendar.getInstance();
 //            Date now = new Date();
@@ -351,9 +462,9 @@ public class MainActivity extends AppCompatActivity
 //                // In general, logging fitness information should be avoided for privacy reasons.
 //                printData(dataReadResult);
 //            }
-            return null;
-        }
-    }
+//            return null;
+//        }
+//    }
 
     /**
      * Create and return a {@link DataSet} of step count data for insertion using the History API.
@@ -392,40 +503,7 @@ public class MainActivity extends AppCompatActivity
 //        return dataSet;
 //    }
 
-    /**
-     * Return a {@link DataReadRequest} for all step count changes in the past week.
-     */
-//    public static DataReadRequest queryFitnessData() {
-//        // [START build_read_data_request]
-//        // Setting a start and end date using a range of 1 week before this moment.
-//        Calendar cal = Calendar.getInstance();
-//        Date now = new Date();
-//        cal.setTime(now);
-//        long endTime = cal.getTimeInMillis();
-//        cal.add(Calendar.WEEK_OF_YEAR, -1);
-//        long startTime = cal.getTimeInMillis();
-//
-//        java.text.DateFormat dateFormat = getDateInstance();
-//        Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
-//        Log.i(TAG, "Range End: " + dateFormat.format(endTime));
-//
-//        DataReadRequest readRequest = new DataReadRequest.Builder()
-//                // The data request can specify multiple data types to return, effectively
-//                // combining multiple data queries into one call.
-//                // In this example, it's very unlikely that the request is for several hundred
-//                // datapoints each consisting of a few steps and a timestamp.  The more likely
-//                // scenario is wanting to see how many steps were walked per day, for 7 days.
-//                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
-//                // Analogous to a "Group By" in SQL, defines how data should be aggregated.
-//                // bucketByTime allows for a time span, whereas bucketBySession would allow
-//                // bucketing by "sessions", which would need to be defined in code.
-//                .bucketByTime(1, TimeUnit.DAYS)
-//                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-//                .build();
-//        // [END build_read_data_request]
-//
-//        return readRequest;
-//    }
+
 
     public static DataReadRequest queryWeekFitnessData(long startTime, long endTime)
     {
@@ -442,7 +520,7 @@ public class MainActivity extends AppCompatActivity
                 // In this example, it's very unlikely that the request is for several hundred
                 // datapoints each consisting of a few steps and a timestamp.  The more likely
                 // scenario is wanting to see how many steps were walked per day, for 7 days.
-                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .aggregate(TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
                 // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                 // bucketByTime allows for a time span, whereas bucketBySession would allow
                 // bucketing by "sessions", which would need to be defined in code.
@@ -454,54 +532,7 @@ public class MainActivity extends AppCompatActivity
         return readRequest;
     }
 
-    /**
-     * Log a record of the query result. It's possible to get more constrained data sets by
-     * specifying a data source or data type, but for demonstrative purposes here's how one would
-     * dump all the data. In this sample, logging also prints to the device screen, so we can see
-     * what the query returns, but your app should not log fitness information as a privacy
-     * consideration. A better option would be to dump the data you receive to a local data
-     * directory to avoid exposing it to other applications.
-     */
-    public static void printData(DataReadResult dataReadResult) {
-        // [START parse_read_data_result]
-        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
-        // as buckets containing DataSets, instead of just DataSets.
-        if (dataReadResult.getBuckets().size() > 0) {
-            Log.i(TAG, "Number of returned buckets of DataSets is: "
-                    + dataReadResult.getBuckets().size());
-            for (Bucket bucket : dataReadResult.getBuckets()) {
-                List<DataSet> dataSets = bucket.getDataSets();
-                for (DataSet dataSet : dataSets) {
-                    dumpDataSet(dataSet);
-                }
-            }
-        } else if (dataReadResult.getDataSets().size() > 0) {
-            Log.i(TAG, "Number of returned DataSets is: "
-                    + dataReadResult.getDataSets().size());
-            for (DataSet dataSet : dataReadResult.getDataSets()) {
-                dumpDataSet(dataSet);
-            }
-        }
-        // [END parse_read_data_result]
-    }
 
-    // [START parse_dataset]
-    private static void dumpDataSet(DataSet dataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        DateFormat dateFormat = getTimeInstance();
-
-        for (DataPoint dp : dataSet.getDataPoints()) {
-            Log.i(TAG, "Data point:");
-            Log.i(TAG, "\tType: " + dp.getDataType().getName());
-            Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            for(Field field : dp.getDataType().getFields()) {
-                Log.i(TAG, "\tField: " + field.getName() +
-                        " Value: " + dp.getValue(field));
-            }
-        }
-    }
-    // [END parse_dataset]
 
     /**
      * Delete a {@link DataSet} from the History API. In this example, we delete all
@@ -522,7 +553,7 @@ public class MainActivity extends AppCompatActivity
         //  Create a delete request object, providing a data type and a time interval
         DataDeleteRequest request = new DataDeleteRequest.Builder()
                 .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA)
+                .addDataType(TYPE_STEP_COUNT_DELTA)
                 .build();
 
         // Invoke the History API with the Google API client object and delete request, and then
