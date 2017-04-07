@@ -105,22 +105,8 @@ public class Daily extends Fragment
         GraphView graph = (GraphView) view.findViewById(R.id.daily);
 
 
-        MainActivity activity = (MainActivity) getActivity();
-        float data = activity.getDailySteps();
-        //bounds nad scaling and scrolling:
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(10);
-
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(10);
-
-        graph.getViewport().setScalable(true);
-        graph.getViewport().setScalableY(true);
-
         BarGraphSeries<DataPoint> series = new BarGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 2),
+                new DataPoint(0, 1),
                 new DataPoint(1, 5),
                 new DataPoint(2, 3),
                 new DataPoint(3, 2),
@@ -129,21 +115,20 @@ public class Daily extends Fragment
         graph.addSeries(series);
 
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 3),
-                new DataPoint(1, 3),
-                new DataPoint(2, 6),
-                new DataPoint(3, 2),
-                new DataPoint(4, 5)
+                new DataPoint(0, 30),
+                new DataPoint(1, 30),
+                new DataPoint(2, 60),
+                new DataPoint(3, 20),
+                new DataPoint(4, 50)
         });
-        graph.addSeries(series2);
 
-        //legend:
-        series.setTitle("Steps");
-        series.setColor(Color.parseColor("#607D8B"));
-        series2.setTitle("Pain");
-        series2.setColor(Color.parseColor("#F2972E"));
-        graph.getLegendRenderer().setVisible(true);
-        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        // set second scale
+        graph.getSecondScale().addSeries(series2);
+        // the y bounds are always manual for second scale
+        graph.getSecondScale().setMinY(0);
+        graph.getSecondScale().setMaxY(100);
+        series2.setColor(Color.RED);
+        graph.getGridLabelRenderer().setVerticalLabelsSecondScaleColor(Color.RED);
         return view;
     }
 

@@ -3,13 +3,28 @@ package jpstarkey.symptracker;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.data.Bucket;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataSource;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.fitness.result.DataReadResult;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.BarGraphSeries;
@@ -17,11 +32,16 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static android.R.attr.data;
+import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
+import static jpstarkey.symptracker.R.id.view;
 
 
 /**
@@ -43,7 +63,16 @@ public class Report extends Fragment
     private String mParam1;
     private String mParam2;
 
+    //Google fitness API
+    public static final String TAG = "BasicHistoryApi";
+    private static final String AUTH_PENDING = "auth_state_pending";
+    private static boolean authInProgress = false;
+    private GoogleApiClient mClient = null;
+    private static final int REQUEST_OAUTH = 1;
+    private float scaledStepCount = 0;
+
     private OnFragmentInteractionListener mListener;
+    GraphView graph;
 
     public Report()
     {
@@ -84,64 +113,26 @@ public class Report extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
+
+
         View view = inflater.inflate(R.layout.fragment_weekly, container, false);
-        GraphView graph = (GraphView) view.findViewById(R.id.weekly);
+        graph = (GraphView) view.findViewById(R.id.weekly);
 
-
-        MainActivity activity = (MainActivity) getActivity();
-        LinkedHashMap<Date, Integer> data = activity.returnStepsForWeek();
-
-        //bounds nad scaling and scrolling:
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(2500);
-
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(7);
-
-        graph.getViewport().setScalable(true);
-        graph.getViewport().setScalableY(true);
-
-        //Create an array of dataPoints containing the graph data
-        ArrayList<DataPoint> dps = new ArrayList<>();
-        for (Map.Entry<Date, Integer> entry : data.entrySet())
-        {
-            DataPoint v = new DataPoint(entry.getKey(), entry.getValue());
-            dps.add(v);
-            Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
-        }
-
-        DataPoint[] dpsFinal = new DataPoint[dps.size()];
-
-        for (int i=0; i<dps.size(); i++)
-        {
-            dpsFinal[i] = dps.get(i);
-        }
-
-        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dpsFinal);
-
-        graph.addSeries(series);
-
-//        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
-//                new DataPoint(0, 3),
-//                new DataPoint(1, 3),
-//                new DataPoint(2, 6),
-//                new DataPoint(3, 2),
-//                new DataPoint(4, 5)
-//        });
-//        graph.addSeries(series2);
-
-        //legend:
-        series.setTitle("Steps");
-        series.setColor(Color.parseColor("#607D8B"));
-//        series2.setTitle("Pain");
-//        series2.setColor(Color.parseColor("#F2972E"));
-        graph.getLegendRenderer().setVisible(true);
-        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        bindGraph();
+//
         return view;
     }
 
+    public void bindGraph()
+    {
+        MainActivity activity = new MainActivity();
+
+        GlobalState state = ((GlobalState) this.getContext().getApplicationContext());
+        mClient = state.getClient();
+
+        activity.new getWeeklyDataTask(mClient, graph, this.getActivity())
+                .execute();
+    }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri)
