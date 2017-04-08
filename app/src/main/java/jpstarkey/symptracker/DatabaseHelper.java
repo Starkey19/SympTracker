@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static android.os.FileObserver.CREATE;
 import static android.provider.Contacts.SettingsColumns.KEY;
 
 /**
@@ -40,17 +41,40 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //Table names
     private static final String TABLE_SYMPTOMS = "Symptoms";
     private static final String TABLE_MEDICATIONS = "Medications";
+    private static final String TABLE_DAILY = "Daily";
+    private static final String TABLE_GOALS = "Goals";
+    private static final String TABLE_PAIN_LEVELS = "Pain_Levels";
+
+    //Daily table columns
+    private static final String KEY_DAILY_ID = "_id";
+    private static final String KEY_DAILY_PAIN = "daily_pain"; //Overall/average daily pain level? TODO
+    private static final String KEY_DAILY_DATE = "date";
+
+    //goals table columns
+    private static final String KEY_GOAL_ID = "_id";
+    private static final String KEY_GOAL_NAME = "name";
+    private static final String KEY_GOAL_DESCRIPTION = "description";
+    private static final String KEY_GOAL_ACCOMPLISH_DATE = "accomplish_date";
+    private static final String KEY_GOAL_ACCOMPLISHED = "accomplished";
+
+    //Pain levels table
+    private static final String KEY_PAIN_LEVELS_ID = "_id";
+    private static final String KEY_PAIN_LEVELS_SYMPTOM_ID_FK = "symptom_id";
+    private static final String KEY_PAIN_LEVELS_LEVEL = "pain_level";
+    private static final String KEY_PAIN_LEVELS_DATE = "date";
 
     //Symptoms table columns
     private static final String KEY_SYMPTOM_ID = "_id";
-    private static final String KEY_SYMPTOM_NAME = "SymptomName";
+    private static final String KEY_SYMPTOM_NAME = "name";
+    private static final String KEY_SYMPTOM_DESCRIPTION = "description";
+    private static final String KEY_SYMPTOM_PAIN = "pain";
 
     //Medication table columns
     private static final String KEY_MEDICATION_ID = "_id";
-    private static final String KEY_MEDICATION_NAME = "MedicationName";
-    private static final String KEY_MEDICATION_AMOUNT = "MedicationAmount";
-    //TODO - Medication frequency etc..
-
+    private static final String KEY_MEDICATION_NAME = "name";
+    private static final String KEY_MEDICATION_DESCRIPTION = "description";
+    private static final String KEY_MEDICATION_AMOUNT = "amount";
+    private static final String KEY_MEDICATION_FREQUENCY = "frequency"; // amnt / day e.g 2/day
 
 
     //region Database setup methods
@@ -100,22 +124,57 @@ public class DatabaseHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-        //TODO this will need changing once more columns, fields are added !
         String CREATE_SYMPTOMS_TABLE = "CREATE TABLE " + TABLE_SYMPTOMS +
                 "(" +
-                    KEY_SYMPTOM_ID + " INTEGER PRIMARY KEY," + //Primary key
-                    KEY_SYMPTOM_NAME + " TEXT" +
+                    KEY_SYMPTOM_ID + " INTEGER PRIMARY KEY, " + //Primary key
+                    KEY_SYMPTOM_NAME + " TEXT," +
+                    KEY_SYMPTOM_DESCRIPTION + " TEXT, " +
+                    KEY_SYMPTOM_PAIN + " INTEGER" +
                 ")";
 
         String CREATE_MEDICATIONS_TABLE = "CREATE TABLE " + TABLE_MEDICATIONS +
                 "(" +
                     KEY_MEDICATION_ID + " INTEGER PRIMARY KEY," + //Primary key
                     KEY_MEDICATION_NAME + " TEXT," +
-                    KEY_MEDICATION_AMOUNT + " INTEGER" +
+                    KEY_MEDICATION_AMOUNT + " INTEGER," +
+                    KEY_MEDICATION_DESCRIPTION + "TEXT" +
+
                 ")";
+
+        String CREATE_DAILY_TABLE = "CREATE TABLE " + TABLE_DAILY +
+                "(" +
+                    KEY_DAILY_ID + " INTEGER PRIMARY KEY, " +
+                    KEY_DAILY_DATE + "INTEGER, " +              //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    KEY_DAILY_PAIN + "INTEGER, " +
+                ")";
+
+        String CREATE_GOALS_TABLE = "CREATE TABLE " + TABLE_GOALS +
+                "(" +
+                    KEY_GOAL_ID + " INTEGER PRIMARY KEY, " +
+                    KEY_GOAL_NAME + " TEXT, " +
+                    KEY_GOAL_DESCRIPTION + " TEXT, " +
+                    KEY_GOAL_ACCOMPLISH_DATE + " INTEGER, " +  //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    KEY_GOAL_ACCOMPLISHED + " INTEGER" + //Boolean
+                ")";
+
+        String CREATE_PAIN_LEVELS_TABLE = "CREATE TABLE " + TABLE_PAIN_LEVELS +
+                "(" +
+                    KEY_PAIN_LEVELS_ID + " INTEGER PRIMARY KEY, " +
+                    KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
+                    KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
+                    KEY_PAIN_LEVELS_DATE + " INTEGER, " +   //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "
+
+
+
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_MEDICATIONS_TABLE);
+        db.execSQL(CREATE_DAILY_TABLE);
+        db.execSQL(CREATE_GOALS_TABLE);
+        db.execSQL(CREATE_PAIN_LEVELS_TABLE);
+
+
     }
 
     //Called when the database needs to be upgraded
@@ -134,7 +193,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     }
     //endregion
 
-    //region Insert a symptom into the database:
+    //region symptoms
     public void addSymptom(Symptom symptom)
     {
         //create/open the database for writing
@@ -158,7 +217,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     }
     //endregion
 
-    //region Insert a medication into the database:
+    //region medications
     public void addMedication(Medication medication)
     {
         //create/open the database for writing
@@ -239,6 +298,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
         return symptoms;
     }
+
+    public Symptom getSymptomBy
 
     public List<Medication> getAllMedications() {
         List<Medication> meds = new ArrayList<>();
