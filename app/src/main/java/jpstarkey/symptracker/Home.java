@@ -1,12 +1,17 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.jjoe64.graphview.GraphView;
 
 
 /**
@@ -23,6 +28,8 @@ public class Home extends Fragment
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private TextView currentTotalSteps;
+    private GoogleApiClient mClient = null;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -64,6 +71,12 @@ public class Home extends Fragment
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
+
+
+        // Fragment screen orientation normal both portait and landscape
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override
@@ -71,7 +84,17 @@ public class Home extends Fragment
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        currentTotalSteps = (TextView) view.findViewById(R.id.tvTotalSteps);
+
+        GlobalState state = ((GlobalState) this.getContext().getApplicationContext());
+        mClient = state.getClient();
+        if (currentTotalSteps != null)
+        {
+            currentTotalSteps.setText(Float.toString(state.getDailySteps()));
+        }
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

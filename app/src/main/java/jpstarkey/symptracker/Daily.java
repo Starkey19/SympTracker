@@ -1,7 +1,9 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -24,11 +26,16 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.result.DailyTotalResult;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.helper.StaticLabelsFormatter;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.util.Calendar;
+import java.util.Date;
 
 import static android.os.Build.VERSION_CODES.M;
 
@@ -95,6 +102,8 @@ public class Daily extends Fragment
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        //Force Landscape orientation for the graph:
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override
@@ -105,29 +114,61 @@ public class Daily extends Fragment
         GraphView graph = (GraphView) view.findViewById(R.id.daily);
 
 
+
+        Calendar calendar = Calendar.getInstance();
+        Date d1 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d2 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d3 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d4 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d5 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d6 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        Date d7 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+
         BarGraphSeries<DataPoint> series = new BarGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
+                new DataPoint(1, 544),
+                new DataPoint(2, 322),
+                new DataPoint(3, 2222),
+                new DataPoint(4, 63),
+                new DataPoint(5, 633),
+                new DataPoint(6, 833),
+                new DataPoint(7, 933)
         });
         graph.addSeries(series);
 
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 30),
-                new DataPoint(1, 30),
-                new DataPoint(2, 60),
-                new DataPoint(3, 20),
-                new DataPoint(4, 50)
+                new DataPoint(1, 1),
+                new DataPoint(2, 2),
+                new DataPoint(3, 8),
+                new DataPoint(4, 5),
+                new DataPoint(5, 2),
+                new DataPoint(6, 7),
+                new DataPoint(7, 7)
         });
 
         // set second scale
         graph.getSecondScale().addSeries(series2);
         // the y bounds are always manual for second scale
         graph.getSecondScale().setMinY(0);
-        graph.getSecondScale().setMaxY(100);
+        graph.getSecondScale().setMaxY(10);
         series2.setColor(Color.RED);
+
+        //graph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getActivity()));
+        //graph.getGridLabelRenderer().setNumHorizontalLabels(3);
+
+        // use static labels for horizontal and vertical labels
+        StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graph);
+        staticLabelsFormatter.setHorizontalLabels(new String[] {"Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"});
+
+
+
+        graph.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
         graph.getGridLabelRenderer().setVerticalLabelsSecondScaleColor(Color.RED);
         return view;
     }

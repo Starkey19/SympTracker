@@ -1,6 +1,7 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 //import android.preference.PreferenceFragment;
@@ -79,6 +80,9 @@ public class SettingsFragment
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        // Fragment screen orientation normal both portait and landscape
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override

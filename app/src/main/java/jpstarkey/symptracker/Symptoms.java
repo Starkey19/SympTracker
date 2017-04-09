@@ -1,6 +1,7 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -67,9 +68,8 @@ public class Symptoms extends Fragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-
-
-
+        // Fragment screen orientation normal both portait and landscape
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override

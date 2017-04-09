@@ -24,6 +24,7 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 import static android.os.FileObserver.CREATE;
 import static android.provider.Contacts.SettingsColumns.KEY;
+import static jpstarkey.symptracker.R.id.daily;
 
 /**
  * Created by Joshs on 30/03/2017.
@@ -137,8 +138,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_MEDICATION_ID + " INTEGER PRIMARY KEY," + //Primary key
                     KEY_MEDICATION_NAME + " TEXT," +
                     KEY_MEDICATION_AMOUNT + " INTEGER," +
-                    KEY_MEDICATION_DESCRIPTION + "TEXT" +
-
+                    KEY_MEDICATION_DESCRIPTION + "TEXT, " +
+                    KEY_MEDICATION_FREQUENCY + "INTEGER" +
                 ")";
 
         String CREATE_DAILY_TABLE = "CREATE TABLE " + TABLE_DAILY +
@@ -163,10 +164,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
                     KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
                     KEY_PAIN_LEVELS_DATE + " INTEGER, " +   //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
-                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "
-
-
-
+                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "+TABLE_SYMPTOMS+"("+KEY_SYMPTOM_ID+")";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_MEDICATIONS_TABLE);
@@ -193,7 +191,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     }
     //endregion
 
-    //region symptoms
+
     public void addSymptom(Symptom symptom)
     {
         //create/open the database for writing
@@ -205,6 +203,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             ContentValues values = new ContentValues();
             values.put(KEY_SYMPTOM_NAME, symptom.name);
+            values.put(KEY_SYMPTOM_DESCRIPTION, symptom.description);
+            values.put(KEY_SYMPTOM_PAIN, symptom.pain);
 
             db.insertOrThrow(TABLE_SYMPTOMS, null, values);
             db.setTransactionSuccessful();
@@ -215,9 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
             db.endTransaction();
         }
     }
-    //endregion
 
-    //region medications
     public void addMedication(Medication medication)
     {
         //create/open the database for writing
@@ -230,16 +228,78 @@ public class DatabaseHelper extends SQLiteOpenHelper
             ContentValues values = new ContentValues();
             values.put(KEY_MEDICATION_NAME, medication.name);
             values.put(KEY_MEDICATION_AMOUNT, medication.amount);
+            values.put(KEY_MEDICATION_DESCRIPTION, medication.description);
+            values.put(KEY_MEDICATION_FREQUENCY, medication.frequency);
 
-            db.insertOrThrow(TABLE_SYMPTOMS, null, values);
+            db.insertOrThrow(TABLE_MEDICATIONS, null, values);
             db.setTransactionSuccessful();
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to add symptom to database");
+            Log.d(TAG, "Error while trying to add Medication to database");
         } finally
         {
             db.endTransaction();
         }
     }
+    //TODO
+    /*
+        String CREATE_PAIN_LEVELS_TABLE = "CREATE TABLE " + TABLE_PAIN_LEVELS +
+                "(" +
+                    KEY_PAIN_LEVELS_ID + " INTEGER PRIMARY KEY, " +
+                    KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
+                    KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
+                    KEY_PAIN_LEVELS_DATE + " INTEGER, " +   //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "+TABLE_SYMPTOMS+"("+KEY_SYMPTOM_ID+")";
+     */
+
+    public void addDailyLog(DailyLog daily)
+    {
+        //create/open the database for writing
+        SQLiteDatabase db = getWritableDatabase();
+
+        //Wrap insert inside a transaction for performance
+        db.beginTransaction();
+        try
+        {
+            ContentValues values = new ContentValues();
+            values.put(KEY_DAILY_DATE, daily.date);
+            values.put(KEY_DAILY_PAIN, daily.pain);
+
+            long _id = db.insertOrThrow(TABLE_DAILY, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add daily log  to database");
+        } finally
+        {
+            db.endTransaction();
+        }
+    }
+
+    public void addGoal(Goal goal)
+    {
+        //create/open the database for writing
+        SQLiteDatabase db = getWritableDatabase();
+
+        //Wrap insert inside a transaction for performance
+        db.beginTransaction();
+        try
+        {
+            ContentValues values = new ContentValues();
+            values.put(KEY_GOAL_NAME, goal.name);
+            values.put(KEY_GOAL_DESCRIPTION, goal.description);
+            values.put(KEY_GOAL_ACCOMPLISH_DATE, goal.accomplishDate);
+            values.put(KEY_GOAL_ACCOMPLISHED, goal.accomplished);
+
+            db.insertOrThrow(TABLE_GOALS, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add Goal to database");
+        } finally
+        {
+            db.endTransaction();
+        }
+    }
+
+    //public void addPainLevel
 
     public void copyDB() throws IOException
     {
@@ -262,7 +322,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
     }
 
-    //endregion
 
     //region Querying
     public List<Symptom> getAllSymptoms() {
@@ -299,7 +358,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         return symptoms;
     }
 
-    public Symptom getSymptomBy
+    //public Symptom getSymptomBy
 
     public List<Medication> getAllMedications() {
         List<Medication> meds = new ArrayList<>();

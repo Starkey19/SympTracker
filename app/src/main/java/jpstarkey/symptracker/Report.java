@@ -1,6 +1,7 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -107,6 +108,9 @@ public class Report extends Fragment
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        // Fragment screen orientation normal both portait and landscape
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override

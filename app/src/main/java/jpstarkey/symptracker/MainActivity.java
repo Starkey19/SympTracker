@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
@@ -63,6 +64,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static android.R.attr.data;
+import static android.R.attr.fragment;
 import static android.os.Build.VERSION_CODES.M;
 import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
 import static java.text.DateFormat.getDateInstance;
@@ -93,13 +95,14 @@ public class MainActivity extends AppCompatActivity
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
 
+
      /**Google fitness API
      *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
      *  Track whether an authorization activity is stacking over the current activity, i.e. when
      *  a known auth error is being resolved, such as showing the account chooser or presenting a
      *  consent dialog. This avoids common duplications as might happen on screen rotations, etc.
      */
-     public static final String TAG = "BasicHistoryApi";
+    public static final String TAG = "BasicHistoryApi";
     private static final String AUTH_PENDING = "auth_state_pending";
     private static boolean authInProgress = false;
     private GoogleApiClient mClient = null;
@@ -126,9 +129,9 @@ public class MainActivity extends AppCompatActivity
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         setupDrawerContent(nvDrawer);
 
+
         //Set the home page on first load
         MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
-
         selectDrawerItem(homeItem);
         //Google fitness API:
         if(savedInstanceState != null)
@@ -143,7 +146,11 @@ public class MainActivity extends AppCompatActivity
         {
             GlobalState state = ((GlobalState) getApplicationContext());
             state.setMClient(mClient);
+
+            //Set the current total daily steps counter on home page
+
         }
+
 
         //createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
         //returnStepsForDay();
