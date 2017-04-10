@@ -44,27 +44,36 @@
 
         <ListView
             android:id="@+id/sympItems"
-            android:layout_width="365dp"
-            android:layout_height="392dp"
+            android:layout_width="376dp"
+            android:layout_height="68dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
-            app:layout_constraintHorizontal_bias="0.621"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/view"/>
 
 
         <Button
-            android:id="@+id/button4"
+            android:id="@+id/btnEditSymptom"
             android:layout_width="147dp"
             android:layout_height="44dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:text="@string/btnEditSymptom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+        <Button
+            android:id="@+id/btnAddSymptom"
+            android:layout_width="147dp"
+            android:layout_height="44dp"
+            android:layout_marginBottom="16dp"
             android:layout_marginRight="16dp"
-            android:layout_marginTop="16dp"
             android:text="@string/btnAddSymptom"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/sympItems"
-            tools:layout_editor_absoluteX="248dp"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
 
     </android.support.constraint.ConstraintLayout>
 </FrameLayout>

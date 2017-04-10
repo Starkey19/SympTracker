@@ -36,7 +36,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static String DB_PATH = "";
 
     //Table names
@@ -146,7 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                 "(" +
                     KEY_DAILY_ID + " INTEGER PRIMARY KEY, " +
                     KEY_DAILY_DATE + "INTEGER, " +              //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
-                    KEY_DAILY_PAIN + "INTEGER, " +
+                    KEY_DAILY_PAIN + "INTEGER " +
                 ")";
 
         String CREATE_GOALS_TABLE = "CREATE TABLE " + TABLE_GOALS +
@@ -170,7 +170,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_MEDICATIONS_TABLE);
         db.execSQL(CREATE_DAILY_TABLE);
         db.execSQL(CREATE_GOALS_TABLE);
-        db.execSQL(CREATE_PAIN_LEVELS_TABLE);
+        //db.execSQL(CREATE_PAIN_LEVELS_TABLE);
 
 
     }
@@ -186,6 +186,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYMPTOMS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEDICATIONS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DAILY);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_GOALS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PAIN_LEVELS);
             onCreate(db);
         }
     }

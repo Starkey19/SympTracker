@@ -86,7 +86,10 @@ public class MainActivity extends AppCompatActivity
         Home.MyFragmentCallBack,
         Report.OnFragmentInteractionListener,
         Medications.OnFragmentInteractionListener,
-        Symptoms.OnFragmentInteractionListener
+        Symptoms.OnFragmentInteractionListener,
+        AddDialog.OnFragmentInteractionListener
+
+
 {
 
     //Navigation drawer

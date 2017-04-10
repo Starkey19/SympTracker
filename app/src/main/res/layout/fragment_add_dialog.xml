@@ -1,0 +1,66 @@
+<android.support.constraint.ConstraintLayout
+    android:id="@+id/add_symptom"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:id="@+id/lbl_symptom_name"
+        android:layout_width="161dp"
+        android:layout_height="24dp"
+        android:text="Symptom name"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <EditText
+        android:id="@+id/txt_symptom_name"
+        android:layout_width="wrap_content"
+        android:layout_height="42dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lbl_symptom_description"/>
+
+    <TextView
+        android:id="@+id/lbl_symptom_description"
+        android:layout_width="160dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="8dp"
+        android:text="Symptom description"
+        app:layout_constraintTop_toBottomOf="@+id/txt_symptom_description"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        tools:layout_editor_absoluteY="89dp"
+        tools:layout_editor_absoluteX="9dp"/>
+
+    <EditText
+        android:id="@+id/txt_symptom_description"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@+id/lbl_symptom_name"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"/>
+</android.support.constraint.ConstraintLayout>

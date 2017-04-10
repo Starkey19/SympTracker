@@ -69,7 +69,7 @@ public class GlobalState extends Application
             mClient.connect();
         }
 
-        return getDailySteps();
+        return totalSteps;
     }
 
 }

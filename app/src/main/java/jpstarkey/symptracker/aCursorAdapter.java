@@ -33,14 +33,16 @@ public class aCursorAdapter extends CursorAdapter
     public void bindView(View view, Context context, Cursor cursor)
     {
         //Get fields
+        TextView sympName = (TextView) view.findViewById(R.id.symptomName);
         TextView sympBody = (TextView) view.findViewById(R.id.symptomBody);
-        TextView sympPriority = (TextView) view.findViewById(R.id.symptomPriority);
+
         //Extract from cursor
-        String body = cursor.getString(cursor.getColumnIndexOrThrow("SymptomName"));
-        //int priority = cursor.getInt(cursor.getColumnIndexOrThrow("armount"));
+        String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+        String body = cursor.getString(cursor.getColumnIndexOrThrow("description"));
+        //pain level int
 
         //Populate fields with extracted properties
+        sympName.setText(name);
         sympBody.setText(body);
-        sympPriority.setText(String.valueOf(priority));
     }
 }

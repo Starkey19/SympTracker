@@ -42,4 +42,5 @@
     <string name="title_medications">Medications</string>
     <string name="title_symptoms">Symptoms</string>
     <string name="btnAddSymptom">Add Symptom</string>
+    <string name="btnEditSymptom">Edit Symptom</string>
 </resources>

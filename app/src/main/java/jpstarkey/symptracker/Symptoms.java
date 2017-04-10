@@ -7,10 +7,16 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import static jpstarkey.symptracker.R.id.view;
 
 
 /**
@@ -21,16 +27,14 @@ import android.widget.ListView;
  * Use the {@link Symptoms#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Symptoms extends Fragment
+public class Symptoms extends Fragment implements
+        AddDialog.AddDialogListener,
+        AddDialog.OnFragmentInteractionListener
 {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    Button btnAddSymptom;
+    Button btnEditSymptom;
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -52,8 +56,6 @@ public class Symptoms extends Fragment
     {
         Symptoms fragment = new Symptoms();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,8 +66,6 @@ public class Symptoms extends Fragment
         super.onCreate(savedInstanceState);
         if (getArguments() != null)
         {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
         // Fragment screen orientation normal both portait and landscape
@@ -76,10 +76,36 @@ public class Symptoms extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-
-
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_symptoms, container, false);
+        View view = inflater.inflate(R.layout.fragment_symptoms, container, false);
+
+        //Get instances of the add and edit buttons:
+        btnAddSymptom = (Button) view.findViewById(R.id.btnAddSymptom);
+        btnAddSymptom.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                FragmentManager fm = getFragmentManager();
+                AddDialog addDialog = AddDialog.newInstance("Add a new Symptom");
+                addDialog.setTargetFragment(Symptoms.this, 300);
+                addDialog.show(fm, "add_symptom");
+
+                Log.i("Symptoms", "Add Symptom clicked");
+            }
+        });
+
+        btnEditSymptom = (Button) view.findViewById(R.id.btnEditSymptom);
+        btnEditSymptom.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Log.i("Symptoms", "Edit Symptom clicked");
+            }
+        });
+        // Inflate the layout for this fragment
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -113,13 +139,6 @@ public class Symptoms extends Fragment
 
         //TEST ADD A SYMPTOM TO DB
         DatabaseHelper handler = DatabaseHelper.getInstance(this.getContext());
-        Symptom testSymptom = new Symptom();
-        testSymptom.name = "test";
-
-        handler.addSymptom(testSymptom);
-        //TEST
-
-
         SQLiteDatabase db = handler.getWritableDatabase();
         Cursor sympCursor = db.rawQuery("SELECT * FROM Symptoms", null);
 
@@ -136,6 +155,23 @@ public class Symptoms extends Fragment
     {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onFinishEditDialog(String inputSymptomName, String inputSymptomDesc)
+    {
+        Log.i("Symptoms", inputSymptomName + " " + inputSymptomDesc);
+
+        DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
+        //Insert symptom into DB
+        Symptom newSymptom = new Symptom(inputSymptomName, inputSymptomDesc, 0); //Set pain level to 0 initially
+        db.addSymptom(newSymptom);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri)
+    {
+
     }
 
     /**
