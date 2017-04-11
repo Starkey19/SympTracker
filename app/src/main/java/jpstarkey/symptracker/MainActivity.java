@@ -30,6 +30,21 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.BarLineChartBase;
+import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.BaseDataSet;
+import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -54,16 +69,20 @@ import com.google.android.gms.fitness.result.DataReadResult;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.TimeUnit;
 
 import static android.R.attr.data;
+import static android.R.attr.format;
 import static android.R.attr.fragment;
 import static android.os.Build.VERSION_CODES.M;
 import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
@@ -76,7 +95,7 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.BarGraphSeries;
-
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 
 public class MainActivity extends AppCompatActivity
@@ -97,6 +116,7 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
+    private long referenceTimestamp;
 
 
      /**Google fitness API
@@ -136,6 +156,13 @@ public class MainActivity extends AppCompatActivity
         //Set the home page on first load
         MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
         selectDrawerItem(homeItem);
+
+
+        //FOR TESTING TODO DELETE ME :
+        MenuItem reportItem = nvDrawer.getMenu().findItem(R.id.nav_report_fragment);
+        selectDrawerItem(reportItem);
+
+
         //Google fitness API:
         if(savedInstanceState != null)
         {
@@ -451,32 +478,25 @@ public class MainActivity extends AppCompatActivity
 
     //TODO refactor
     //Try to return no of steps for a specific day from GFIT API
-    public class getWeeklyDataTask extends AsyncTask<Void, Void, LinkedHashMap<Date, Integer>>
+    public class getWeeklyDataTask extends AsyncTask<Void, Void, LinkedHashMap<Long, Integer>>
     {
-        GraphView graph;
+        CombinedChart mChart;
         Activity context;
-        //GoogleApiClient mClient;
 
-        public getWeeklyDataTask(GoogleApiClient client, GraphView graph, Activity context)
+        public getWeeklyDataTask(GoogleApiClient client, CombinedChart chart, Activity context)
         {
-            this.graph = graph;
+            this.mChart = chart;
             mClient = client;
-
-            if (mClient == null)
-            {
-
-                //buildFitnessClient();
-            }
         }
 
-        protected LinkedHashMap<Date, Integer> doInBackground(Void ...params) {
-            LinkedHashMap<Date, Integer> days = new LinkedHashMap<>();
+        protected LinkedHashMap<Long, Integer> doInBackground(Void ...params) {
+            LinkedHashMap<Long, Integer> days = new LinkedHashMap<>();
 
             Calendar C = Calendar.getInstance();
             C.setTime(new Date());
             long end = 0;
             long start = 0;
-            for (int i = 1; i < 7; i++)
+            for (int i = 1; i < 8; i++)
             {
                 //If we just started, get the current day as end
                 if (i == 1)
@@ -488,63 +508,42 @@ public class MainActivity extends AppCompatActivity
                 C.add(Calendar.DAY_OF_WEEK, -1);
                 start = C.getTimeInMillis();
 
-                Log.i("TAG", "start:" + new Date(start).toString() + "end" + new Date(end).toString());
-                days.put(new Date(end), getStepsCount(start, end));
+               // Log.i("TAG", "start:" + new Date(start).toString() + "end" + new Date(end).toString());
+
+                //Trying millis instead of date
+                //days.put(new Date(end), getStepsCount(start, end));
+                days.put(end, getStepsCount(start,end));
+
                 end = start;
             }
 
-            for (Map.Entry<Date, Integer> entry : days.entrySet())
+            for (Map.Entry<Long, Integer> entry : days.entrySet())
             {
-                Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
+                Log.i("DoInBackground", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
             }
 
             return days;
         }
 
-
-        protected void onPostExecute(LinkedHashMap<Date, Integer> result)
+        //After we receive step data render the graph
+        protected void onPostExecute(LinkedHashMap<Long, Integer> result)
         {
-            //bounds and scaling and scrolling:
-//            graph.getViewport().setYAxisBoundsManual(true);
-//            graph.getViewport().setMinY(0);
-//            graph.getViewport().setMaxY(2500);
-
-            graph.getViewport().setXAxisBoundsManual(true);
-            graph.getViewport().setMinX(0);
-            graph.getViewport().setMaxX(7);
-
-//            graph.getViewport().setScalable(true);
-//            graph.getViewport().setScalableY(true);
-
-            //Create an array of dataPoints containing the graph data
-            ArrayList<com.jjoe64.graphview.series.DataPoint> dps = new ArrayList<>();
-            for (Map.Entry<Date, Integer> entry : result.entrySet())
-            {
-
-                dps.add(new com.jjoe64.graphview.series.DataPoint(entry.getKey(), entry.getValue()));
-                Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
-            }
-
-            com.jjoe64.graphview.series.DataPoint[] dpsFinal = new com.jjoe64.graphview.series.DataPoint[dps.size()];
-
-            for (int i=0; i<dps.size(); i++)
-            {
-                dpsFinal[i] = dps.get(i);
-            }
-
-            BarGraphSeries<com.jjoe64.graphview.series.DataPoint> series = new BarGraphSeries<>(dpsFinal);
-
-            graph.addSeries(series);
-
-            //Format date labels:
-            graph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(context));
-            graph.getGridLabelRenderer().setNumHorizontalLabels(7);
-            graph.getGridLabelRenderer().setHumanRounding(false);
-            //Graph formatting:
+            CombinedData data = new CombinedData();
 
 
-            graph.getLegendRenderer().setVisible(true);
-            graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+            data.setData(generateBarData(result));
+            data.setData(generateLineData(result));
+
+            IAxisValueFormatter xAxisFormatter = new DayAxisValueFormatter(mChart);
+            XAxis xAxis = mChart.getXAxis();
+            xAxis.setValueFormatter(xAxisFormatter);
+
+
+            xAxis.setAxisMaximum(data.getXMax() + 0.25f);
+            mChart.setData(data);
+            mChart.invalidate();
+
+            Log.i("CHART", "max x value chart holds : " + mChart.getXChartMax());
         }
 
         public int getStepsCount(long startTime, long endTime) {
@@ -588,6 +587,72 @@ public class MainActivity extends AppCompatActivity
             }
             return steps;
         }
+    }
+
+    private BarData generateBarData(LinkedHashMap<Long, Integer> result) {
+
+        ArrayList<BarEntry> entries1 = new ArrayList<BarEntry>();
+
+        List<Long> keyList = new ArrayList<Long>(result.keySet());
+        referenceTimestamp = keyList.get(keyList.size() -1); //// TODO: 1
+
+        Calendar C = Calendar.getInstance();
+
+        for (int i=keyList.size() - 1; i >= 0; i--)
+        {
+            Long key = keyList.get(i);
+            C.setTimeInMillis(key);
+            int dValue = C.get(Calendar.DAY_OF_MONTH);
+            entries1.add(new BarEntry(dValue, result.get(key)));
+        }
+        BarDataSet set1 = new BarDataSet(entries1, "Steps");
+        set1.setColor(Color.rgb(60, 220, 78));
+        set1.setValueTextColor(Color.rgb(60, 220, 78));
+        set1.setValueTextSize(10f);
+        set1.setAxisDependency(YAxis.AxisDependency.LEFT);
+        float barWidth = 1f;
+        BarData d = new BarData(set1);
+        d.setBarWidth(barWidth);
+        set1.setBarBorderWidth(1f);
+        return d;
+    }
+
+    //todo remove
+    private LineData generateLineData(LinkedHashMap<Long, Integer> result) {
+        LineData d = new LineData();
+
+        ArrayList<Entry> entries = new ArrayList<Entry>();
+        List<Long> keyList = new ArrayList<Long>(result.keySet());
+
+        Calendar C = Calendar.getInstance();
+
+        for (int i=keyList.size() - 1; i >=0; i--)
+        {
+            Long key = keyList.get(i);
+            C.setTimeInMillis(key);
+            int dValue = C.get(Calendar.DAY_OF_MONTH);
+            entries.add(new BarEntry(dValue, getRandom(15,5)));
+        }
+
+        LineDataSet set = new LineDataSet(entries, "Pain level");
+        set.setColor(Color.rgb(240, 238, 70));
+        set.setLineWidth(2.5f);
+        set.setCircleColor(Color.rgb(240, 238, 70));
+        set.setCircleRadius(5f);
+        set.setFillColor(Color.rgb(240, 238, 70));
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        set.setDrawValues(true);
+        set.setValueTextSize(10f);
+        set.setValueTextColor(Color.rgb(240, 238, 70));
+
+        set.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        d.addDataSet(set);
+
+        return d;
+    }
+    //Todo remove
+    protected float getRandom(float range, float startsfrom) {
+        return (float) (Math.random() * range) + startsfrom;
     }
 
     //endregion
@@ -663,13 +728,13 @@ public class MainActivity extends AppCompatActivity
                 fragmentClass = Symptoms.class;
                 break;
             case R.id.nav_activities_fragment:
-                fragmentClass = Daily.class;
+                fragmentClass = Daily.class; //TODO
                 break;
             case R.id.nav_settings_fragment:
                 fragmentClass = SettingsFragment.class;
                 break;
             case R.id.nav_medications_fragment:
-                fragmentClass = Medications.class;
+                fragmentClass = Medications.class; //TODO
                 break;
 
             default:
@@ -771,4 +836,30 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
+
+    public class DayAxisValueFormatter implements IAxisValueFormatter
+    {
+        private BarLineChartBase<?> chart;
+
+        public DayAxisValueFormatter(BarLineChartBase<?> chart) {
+            this.chart = chart;
+        }
+
+        @Override
+        public String getFormattedValue(float value, AxisBase axis)
+        {
+            //Value will be day of current month, so we need to append the month to it
+
+            int convInt = (int)value;
+
+            Calendar C = Calendar.getInstance();
+            C.setTime(new Date());
+
+            int month = C.get(Calendar.MONTH);
+
+
+            return convInt + "/" + month;
+
+        }
+    }
 }

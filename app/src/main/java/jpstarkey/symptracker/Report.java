@@ -13,6 +13,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.github.mikephil.charting.charts.BarLineChartBase;
+import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.charts.CombinedChart.DrawOrder;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -32,11 +42,14 @@ import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -64,7 +77,8 @@ public class Report extends Fragment
     private float scaledStepCount = 0;
 
     private OnFragmentInteractionListener mListener;
-    GraphView graph;
+    private CombinedChart mChart;
+
 
     public Report()
     {
@@ -95,30 +109,58 @@ public class Report extends Fragment
         }
 
         // Fragment screen orientation normal both portait and landscape
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-
-
         View view = inflater.inflate(R.layout.fragment_weekly, container, false);
-        graph = (GraphView) view.findViewById(R.id.weekly);
+        mChart = (CombinedChart) view.findViewById(R.id.weekly);
+        mChart.setBackgroundColor(Color.WHITE);
+        mChart.setDrawGridBackground(false);
+        mChart.setDrawBarShadow(false);
+        mChart.setHighlightFullBarEnabled(false);
+        Description des = mChart.getDescription();
+        des.setEnabled(false);
 
-        bindGraph();
+        // draw bars behind lines
+        mChart.setDrawOrder(new DrawOrder[]{
+                DrawOrder.BAR, DrawOrder.LINE});
+
+        Legend l = mChart.getLegend();
+        l.setWordWrapEnabled(true);
+        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
+        l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        l.setDrawInside(false);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setDrawGridLines(false);
+        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+
+        XAxis xAxis = mChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
+        xAxis.setGranularity(1f);
+       // xAxis.setLabelCount(7); //Week
+
+        bindChart();
         return view;
     }
 
-    public void bindGraph()
+    public void bindChart()
     {
         MainActivity activity = new MainActivity();
 
         GlobalState state = ((GlobalState) this.getContext().getApplicationContext());
         mClient = state.getClient();
 
-        activity.new getWeeklyDataTask(mClient, graph, this.getActivity())
+        activity.new getWeeklyDataTask(mClient, mChart, this.getActivity())
                 .execute();
     }
 
@@ -167,4 +209,8 @@ public class Report extends Fragment
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+
+
 }
