@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.facebook.stetho.Stetho;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.fitness.Fitness;
@@ -32,6 +33,12 @@ public class GlobalState extends Application
     public GlobalState()
     {
 
+    }
+
+    public void onCreate()
+    {
+        super.onCreate();
+        Stetho.initializeWithDefaults(this);
     }
 
     public void setMClient(GoogleApiClient mClient)

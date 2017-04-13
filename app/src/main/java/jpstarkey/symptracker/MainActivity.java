@@ -554,7 +554,8 @@ public class MainActivity extends AppCompatActivity
         if(mContext != null)
         {
             DatabaseHelper db = DatabaseHelper.getInstance(mContext);
-            db.getDailyLog(date);
+
+            painLevel = db.getDailyLog(date).getPain();
         }
 
 
@@ -563,7 +564,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-
+        Log.i("PAINLEVEL", "painlevel = " + Integer.toString(painLevel));
         return painLevel;
     }
 

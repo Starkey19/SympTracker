@@ -39,7 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 5;
     private static String DB_PATH = "";
 
     //Table names
@@ -142,14 +142,14 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_MEDICATION_NAME + " TEXT," +
                     KEY_MEDICATION_AMOUNT + " INTEGER," +
                     KEY_MEDICATION_DESCRIPTION + "TEXT, " +
-                    KEY_MEDICATION_FREQUENCY + "INTEGER" +
+                    KEY_MEDICATION_FREQUENCY + " INTEGER" +
                 ")";
 
         String CREATE_DAILY_TABLE = "CREATE TABLE " + TABLE_DAILY +
                 "(" +
                     KEY_DAILY_ID + " INTEGER PRIMARY KEY, " +
-                    KEY_DAILY_DATE + "TEXT, " +              //DATE stored as TEXT DD/MM/YYYY
-                    KEY_DAILY_PAIN + "INTEGER " +
+                    KEY_DAILY_DATE + " TEXT, " +              //DATE stored as TEXT DD/MM/YYYY
+                    KEY_DAILY_PAIN + " INTEGER " +
                 ")";
 
         String CREATE_GOALS_TABLE = "CREATE TABLE " + TABLE_GOALS +
@@ -342,11 +342,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
         cDate.setTime(date);
         String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
 
+        Log.i("GETDAILYLOG", "Date = " + sDate);
+
+//        String DAILY_SELECT_QUERY =
+//                String.format("SELECT * FROM %s WHERE %s = %s",
+//                        TABLE_DAILY,
+//                        KEY_DAILY_DATE,
+//                        sDate);
         String DAILY_SELECT_QUERY =
-                String.format("SELECT 1 FROM %s WHERE %s = %s",
-                        TABLE_DAILY,
-                        KEY_DAILY_DATE,
-                        sDate);
+                String.format("SELECT * FROM %s",
+                        TABLE_DAILY
+                       );
+
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(DAILY_SELECT_QUERY, null);
         try
