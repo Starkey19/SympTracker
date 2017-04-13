@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.charts.CombinedChart.DrawOrder;
@@ -57,13 +58,7 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.result.DailyTotalResult;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.LegendRenderer;
-import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+
 
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -83,18 +78,8 @@ import static android.os.Build.VERSION_CODES.M;
  */
 public class Daily extends Fragment
 {
-
-    public static final String TAG = "BasicHistoryApi";
-    private static final String AUTH_PENDING = "auth_state_pending";
-    private static boolean authInProgress = false;
-    private GoogleApiClient mClient = null;
-    private static final int REQUEST_OAUTH = 1;
-    private float scaledStepCount = 0;
-
-    private CombinedChart mChart;
-    private final int itemcount = 7;
-
     private OnFragmentInteractionListener mListener;
+    private TextView currentTotalSteps;
 
     public Daily()
     {
@@ -126,7 +111,7 @@ public class Daily extends Fragment
         {
         }
         //Force Landscape orientation for the graph:
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override
@@ -135,180 +120,17 @@ public class Daily extends Fragment
     {
         View view = inflater.inflate(R.layout.fragment_daily, container, false);
 
-        mChart = (CombinedChart) view.findViewById(R.id.daily);
-        mChart.setBackgroundColor(Color.WHITE);
-        mChart.setDrawGridBackground(false);
-        mChart.setDrawBarShadow(false);
-        mChart.setHighlightFullBarEnabled(false);
-        Description des = mChart.getDescription();
-        des.setEnabled(false);
+        currentTotalSteps = (TextView) view.findViewById(R.id.tvTotalSteps);
 
-        // draw bars behind lines
-        mChart.setDrawOrder(new DrawOrder[]{
-                DrawOrder.BAR, DrawOrder.LINE,});
-
-        Legend l = mChart.getLegend();
-        l.setWordWrapEnabled(true);
-        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
-        l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
-        l.setDrawInside(false);
-
-        YAxis rightAxis = mChart.getAxisRight();
-        rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-
-        YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
-
-        XAxis xAxis = mChart.getXAxis();
-        xAxis.setPosition(XAxisPosition.BOTH_SIDED);
-        xAxis.setAxisMinimum(0f);
-        xAxis.setGranularity(1f);
-        xAxis.setValueFormatter(new IAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                return mMonths[(int) value % mMonths.length];
-            }
-        });
-
-        CombinedData data = new CombinedData();
-
-        data.setData(generateLineData());
-        data.setData(generateBarData());
-       // data.setValueTypeface(mTfLight);
-
-        xAxis.setAxisMaximum(data.getXMax() + 0.25f);
-
-        mChart.setData(data);
-        mChart.invalidate();
-
-
-
-
-//        GraphView graph = (GraphView) view.findViewById(R.id.daily);
-//
-//
-//
-//        Calendar calendar = Calendar.getInstance();
-//        Date d1 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d2 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d3 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d4 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d5 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d6 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//        Date d7 = calendar.getTime();
-//        calendar.add(Calendar.DAY_OF_WEEK, -1);
-//
-//        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(new DataPoint[] {
-//                new DataPoint(1, 544),
-//                new DataPoint(2, 322),
-//                new DataPoint(3, 2222),
-//                new DataPoint(4, 63),
-//                new DataPoint(5, 633),
-//                new DataPoint(6, 833),
-//                new DataPoint(7, 933)
-//        });
-//        graph.addSeries(series);
-//
-//        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
-//                new DataPoint(1, 1),
-//                new DataPoint(2, 2),
-//                new DataPoint(3, 8),
-//                new DataPoint(4, 5),
-//                new DataPoint(5, 2),
-//                new DataPoint(6, 7),
-//                new DataPoint(7, 7)
-//        });
-//
-//        // set second scale
-//        graph.getSecondScale().addSeries(series2);
-//        // the y bounds are always manual for second scale
-//        graph.getSecondScale().setMinY(0);
-//        graph.getSecondScale().setMaxY(10);
-//        series2.setColor(Color.RED);
-//
-//        //graph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getActivity()));
-//        //graph.getGridLabelRenderer().setNumHorizontalLabels(3);
-//
-//        // use static labels for horizontal and vertical labels
-//        StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graph);
-//        staticLabelsFormatter.setHorizontalLabels(new String[] {"Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"});
-//
-//
-//
-//        graph.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
-//        graph.getGridLabelRenderer().setVerticalLabelsSecondScaleColor(Color.RED);
+        GlobalState state = ((GlobalState) this.getContext().getApplicationContext());
+        if (currentTotalSteps != null)
+        {
+            currentTotalSteps.setText(Float.toString(state.getDailySteps()));
+        }
         return view;
     }
 
-    private BarData generateBarData() {
 
-        ArrayList<BarEntry> entries1 = new ArrayList<BarEntry>();
-
-        for (int index = 0; index < itemcount; index++) {
-            entries1.add(new BarEntry(index + 0.5f, getRandom(25, 25)));
-        }
-
-        BarDataSet set1 = new BarDataSet(entries1, "Bar 1");
-        set1.setColor(Color.rgb(60, 220, 78));
-        set1.setValueTextColor(Color.rgb(60, 220, 78));
-        set1.setValueTextSize(10f);
-        set1.setAxisDependency(YAxis.AxisDependency.LEFT);
-
-
-        float barWidth = 0.45f; // x2 dataset
-        // (0.45 + 0.02) * 2 + 0.06 = 1.00 -> interval per "group"
-
-        BarData d = new BarData(set1);
-        d.setBarWidth(barWidth);
-
-        // make this BarData object grouped
-        //d.groupBars(0, groupSpace, barSpace); // start at x = 0
-
-        return d;
-    }
-
-    protected float getRandom(float range, float startsfrom) {
-        return (float) (Math.random() * range) + startsfrom;
-    }
-
-    protected String[] mMonths = new String[] {
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"
-    };
-
-    private LineData generateLineData() {
-
-        LineData d = new LineData();
-
-        ArrayList<Entry> entries = new ArrayList<Entry>();
-
-        for (int index = 0; index < itemcount; index++)
-            entries.add(new Entry(index + 0.5f, getRandom(15, 5)));
-
-        LineDataSet set = new LineDataSet(entries, "Line DataSet");
-        set.setColor(Color.rgb(240, 238, 70));
-        set.setLineWidth(2.5f);
-        set.setCircleColor(Color.rgb(240, 238, 70));
-        set.setCircleRadius(5f);
-        set.setFillColor(Color.rgb(240, 238, 70));
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setDrawValues(true);
-        set.setValueTextSize(10f);
-        set.setValueTextColor(Color.rgb(240, 238, 70));
-
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        d.addDataSet(set);
-
-        return d;
-    }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri)

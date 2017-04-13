@@ -6,6 +6,7 @@ package jpstarkey.symptracker;
 import android.app.Application;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -15,6 +16,7 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.result.DailyTotalResult;
 
 import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
+import static jpstarkey.symptracker.R.id.view;
 
 public class GlobalState extends Application
 {
@@ -24,6 +26,7 @@ public class GlobalState extends Application
     private GoogleApiClient mClient = null;
     private static final int REQUEST_OAUTH = 1;
     private float totalSteps = 0.0f;
+
 
     //Constructor
     public GlobalState()
@@ -44,7 +47,11 @@ public class GlobalState extends Application
     //Just gets the daily total steps for current day
     public float getDailySteps()
     {
+        return totalSteps;
+    }
 
+    public void setDailySteps()
+    {
         if (mClient.isConnected())
         {
             Fitness.HistoryApi.readDailyTotal(mClient, TYPE_STEP_COUNT_DELTA)
@@ -63,13 +70,13 @@ public class GlobalState extends Application
                             }
                         }
                     });
-             return totalSteps;
         } else if (!mClient.isConnecting())
         {
             mClient.connect();
         }
 
-        return totalSteps;
+
     }
+
 
 }

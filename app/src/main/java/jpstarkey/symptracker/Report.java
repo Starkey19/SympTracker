@@ -36,11 +36,7 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.LegendRenderer;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

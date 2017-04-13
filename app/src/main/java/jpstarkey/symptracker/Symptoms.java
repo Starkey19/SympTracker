@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,8 +33,10 @@ public class Symptoms extends Fragment implements
         AddDialog.OnFragmentInteractionListener
 {
 
-    Button btnAddSymptom;
-    Button btnEditSymptom;
+    private Button btnAddSymptom;
+    private ListView lvItems;
+    private aCursorAdapter cursorAdapter;
+    private DatabaseHelper handler;
 
 
     private OnFragmentInteractionListener mListener;
@@ -95,15 +98,6 @@ public class Symptoms extends Fragment implements
             }
         });
 
-        btnEditSymptom = (Button) view.findViewById(R.id.btnEditSymptom);
-        btnEditSymptom.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                Log.i("Symptoms", "Edit Symptom clicked");
-            }
-        });
         // Inflate the layout for this fragment
         return view;
     }
@@ -135,19 +129,38 @@ public class Symptoms extends Fragment implements
     // onViewCreated() is only called if the view returned from onCreateView() is non-null.
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(View view, Bundle savedInstanceState)
+    {
+        populateSymptoms();
+    }
 
-        //TEST ADD A SYMPTOM TO DB
+    public void populateSymptoms()
+    {
         DatabaseHelper handler = DatabaseHelper.getInstance(this.getContext());
         SQLiteDatabase db = handler.getWritableDatabase();
         Cursor sympCursor = db.rawQuery("SELECT * FROM Symptoms", null);
 
         //Find the listView we want to populate
-        ListView lvItems = (ListView) this.getView().findViewById(R.id.sympItems);
+        lvItems = (ListView) this.getView().findViewById(R.id.sympItems);
+        setUpLongClick();
         //Setup cursor adapter, added getview,getConext here
-        aCursorAdapter cursorAdapter = new aCursorAdapter(this.getView().getContext(), sympCursor);
+        cursorAdapter = new aCursorAdapter(this.getView().getContext(), sympCursor);
         //Attach the cursor adapter to the listView
         lvItems.setAdapter(cursorAdapter);
+    }
+
+    public void setUpLongClick()
+    {
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l)
+            {
+                //TODO: Bring up edit dialog for symptom with this ID:
+                Log.i("TAG", "ID: " + Long.toString(l));
+            }
+        });
+
     }
 
     @Override
@@ -166,6 +179,9 @@ public class Symptoms extends Fragment implements
         //Insert symptom into DB
         Symptom newSymptom = new Symptom(inputSymptomName, inputSymptomDesc, 0); //Set pain level to 0 initially
         db.addSymptom(newSymptom);
+
+        //"Refresh" the fragment with new content
+        populateSymptoms();
     }
 
     @Override

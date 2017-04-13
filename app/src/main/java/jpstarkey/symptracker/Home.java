@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.jjoe64.graphview.GraphView;
 
 
 /**

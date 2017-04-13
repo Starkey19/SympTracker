@@ -6,19 +6,25 @@
     android:layout_height="match_parent"
     android:background="@color/blueGrey">
 
+    <TextView
+        android:id="@+id/tvLblTotalSteps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        tools:text="Current Total Daily steps"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/tvTotalSteps"
+        tools:layout_editor_absoluteX="129dp"
+        app:layout_constraintVertical_bias="1.0"/>
 
-    <!--<com.jjoe64.graphview.GraphView-->
-        <!--android:id="@+id/daily"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginEnd="16dp"-->
-        <!--android:layout_marginRight="16dp"-->
-        <!--android:layout_marginTop="16dp"/>-->
-
-    <com.github.mikephil.charting.charts.CombinedChart
-        android:id="@+id/daily"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <TextView
+        android:id="@+id/tvTotalSteps"
+        android:layout_width="168dp"
+        android:layout_height="36dp"
+        tools:layout_editor_absoluteY="35dp"
+        tools:layout_editor_absoluteX="121dp"/>
 
 
 </android.support.constraint.ConstraintLayout>

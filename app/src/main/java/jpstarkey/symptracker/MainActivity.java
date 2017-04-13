@@ -91,11 +91,7 @@ import static java.text.DateFormat.getTimeInstance;
 import static jpstarkey.symptracker.R.id.view;
 
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.LegendRenderer;
-import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.LineGraphSeries;
+
 
 
 public class MainActivity extends AppCompatActivity
@@ -107,8 +103,6 @@ public class MainActivity extends AppCompatActivity
         Medications.OnFragmentInteractionListener,
         Symptoms.OnFragmentInteractionListener,
         AddDialog.OnFragmentInteractionListener
-
-
 {
 
     //Navigation drawer
@@ -116,15 +110,13 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
-    private long referenceTimestamp;
+
+    private TextView currentTotalSteps;
 
 
      /**Google fitness API
-     *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
-     *  Track whether an authorization activity is stacking over the current activity, i.e. when
-     *  a known auth error is being resolved, such as showing the account chooser or presenting a
-     *  consent dialog. This avoids common duplications as might happen on screen rotations, etc.
-     */
+ *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
+ **/
     public static final String TAG = "BasicHistoryApi";
     private static final String AUTH_PENDING = "auth_state_pending";
     private static boolean authInProgress = false;
@@ -142,7 +134,6 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         //Finds the layout for the navigation drawer:
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         //Set the toggle for open/close of navbar
@@ -152,18 +143,11 @@ public class MainActivity extends AppCompatActivity
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         setupDrawerContent(nvDrawer);
 
-
         //Set the home page on first load
         MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
         selectDrawerItem(homeItem);
 
-
-        //FOR TESTING TODO DELETE ME :
-        MenuItem reportItem = nvDrawer.getMenu().findItem(R.id.nav_report_fragment);
-        selectDrawerItem(reportItem);
-
-
-        //Google fitness API:
+        //Google fitness API Auth:
         if(savedInstanceState != null)
         {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
@@ -172,6 +156,7 @@ public class MainActivity extends AppCompatActivity
         //Initialize and build the google fit API client
         buildFitnessClient();
 
+        //Store the Fitness Client in the applicationContext for use in other fragments
         if (mClient != null)
         {
             GlobalState state = ((GlobalState) getApplicationContext());
@@ -180,48 +165,13 @@ public class MainActivity extends AppCompatActivity
             //Set the current total daily steps counter on home page
 
         }
-
-
         //createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
         //returnStepsForDay();
     }
 
-
-    //TODO remove
-    public void databaseTest()
-    {
-        //sample data
-        Symptom symp = new Symptom();
-        symp.name = "poop";
-
-        Medication med = new Medication();
-        med.name = "poopFixer";
-        med.amount = 9000;
-
-        //get a instance of the DB helper
-        DatabaseHelper databaseHelper = DatabaseHelper.getInstance(this);
-
-        //add the sample data
-        databaseHelper.addSymptom(symp);
-        databaseHelper.addMedication(med);
-        try
-        {
-            databaseHelper.copyDB();
-        } catch (IOException e)
-        {
-            Log.i("TAG", e.getMessage());
-        }
-
-
-        //List<Symptom> symptoms = databaseHelper.getAllSymptoms();
-
-        //List<Medication> meds = databaseHelper.getAllMedications();
-
-
-    }
-
     //region Google Fit API
     /**
+     *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
      *  Build a {@link GoogleApiClient} that will authenticate the user and allow the application
      *  to connect to Fitness APIs. The scopes included should match the scopes your app needs
      *  (see documentation for details). Authentication will occasionally fail intentionally,
@@ -239,9 +189,15 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onConnected(Bundle bundle) {
                                 Log.i(TAG, "Connected!!!");
-                                // Now you can make calls to the Fitness APIs.  What to do?
-                                // Look at some data!!
-                                //new getWeeklyDataTask().execute();
+                                GlobalState state = ((GlobalState) getApplicationContext());
+                                state.setDailySteps();
+                                //Update the currentTotalSteps on the homepage
+                                currentTotalSteps = (TextView) findViewById(R.id.tvTotalSteps);
+                                if (currentTotalSteps != null)
+                                {
+                                    currentTotalSteps.setText(Float.toString(state.getDailySteps()));
+
+                                }
                             }
 
                             @Override
@@ -306,39 +262,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         return scaledStepCount;
-    }
-
-    public LinkedHashMap<Date, Integer> getWeeklyData()
-    {
-        LinkedHashMap<Date, Integer> days = new LinkedHashMap<>();
-
-        Calendar C = Calendar.getInstance();
-        C.setTime(new Date());
-        long end = 0;
-        long start = 0;
-        for (int i = 1; i < 7; i++)
-        {
-            //If we just started, get the current day as end
-            if (i == 1)
-            {
-                end = C.getTimeInMillis();
-            }
-
-            //Go back a day
-            C.add(Calendar.DAY_OF_WEEK, -1);
-            start = C.getTimeInMillis();
-
-            Log.i("TAG", "start:" + new Date(start).toString() + "end" + new Date(end).toString());
-            days.put(new Date(end), getStepsCount(start, end));
-            end = start;
-        }
-
-        for (Map.Entry<Date, Integer> entry : days.entrySet())
-        {
-            Log.i("TAG", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
-        }
-
-        return days;
     }
 
     public int getStepsCount(long startTime, long endTime) {
@@ -426,46 +349,7 @@ public class MainActivity extends AppCompatActivity
 //        return steps;
         //endregion
     }
-
-    /**
-     * Delete a {@link DataSet} from the History API. In this example, we delete all
-     * step count data for the past 24 hours.
-     */
-    private void deleteData() {
-        Log.i(TAG, "Deleting today's step count data.");
-
-        // [START delete_dataset]
-        // Set a start and end time for our data, using a start time of 1 day before this moment.
-        Calendar cal = Calendar.getInstance();
-        Date now = new Date();
-        cal.setTime(now);
-        long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.DAY_OF_YEAR, -1);
-        long startTime = cal.getTimeInMillis();
-
-        //  Create a delete request object, providing a data type and a time interval
-        DataDeleteRequest request = new DataDeleteRequest.Builder()
-                .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA)
-                .build();
-
-        // Invoke the History API with the Google API client object and delete request, and then
-        // specify a callback that will check the result.
-        Fitness.HistoryApi.deleteData(mClient, request)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        if (status.isSuccess()) {
-                            Log.i(TAG, "Successfully deleted today's step count data.");
-                        } else {
-                            // The deletion will fail if the requesting app tries to delete data
-                            // that it did not insert.
-                            Log.i(TAG, "Failed to delete today's step count data.");
-                        }
-                    }
-                });
-        // [END delete_dataset]
-    }
+    //endregion
 
     @Override
     public void theMethod()
@@ -473,11 +357,8 @@ public class MainActivity extends AppCompatActivity
         scheduleAlarm();
     }
 
-    //TODO: refactor
-
-
-    //TODO refactor
-    //Try to return no of steps for a specific day from GFIT API
+    //Background task to return the weekly number of steps for the connected google account,
+    //to be used when graphing the weekly report of steps/symptoms
     public class getWeeklyDataTask extends AsyncTask<Void, Void, LinkedHashMap<Long, Integer>>
     {
         CombinedChart mChart;
@@ -508,12 +389,7 @@ public class MainActivity extends AppCompatActivity
                 C.add(Calendar.DAY_OF_WEEK, -1);
                 start = C.getTimeInMillis();
 
-               // Log.i("TAG", "start:" + new Date(start).toString() + "end" + new Date(end).toString());
-
-                //Trying millis instead of date
-                //days.put(new Date(end), getStepsCount(start, end));
                 days.put(end, getStepsCount(start,end));
-
                 end = start;
             }
 
@@ -528,22 +404,22 @@ public class MainActivity extends AppCompatActivity
         //After we receive step data render the graph
         protected void onPostExecute(LinkedHashMap<Long, Integer> result)
         {
-            CombinedData data = new CombinedData();
+            if (mChart != null)
+            {
+                CombinedData data = new CombinedData();
+
+                data.setData(generateBarData(result));
+                data.setData(generateLineData(result));
+
+                IAxisValueFormatter xAxisFormatter = new DayAxisValueFormatter(mChart);
+                XAxis xAxis = mChart.getXAxis();
+                xAxis.setValueFormatter(xAxisFormatter);
 
 
-            data.setData(generateBarData(result));
-            data.setData(generateLineData(result));
-
-            IAxisValueFormatter xAxisFormatter = new DayAxisValueFormatter(mChart);
-            XAxis xAxis = mChart.getXAxis();
-            xAxis.setValueFormatter(xAxisFormatter);
-
-
-            xAxis.setAxisMaximum(data.getXMax() + 0.25f);
-            mChart.setData(data);
-            mChart.invalidate();
-
-            Log.i("CHART", "max x value chart holds : " + mChart.getXChartMax());
+                xAxis.setAxisMaximum(data.getXMax() + 0.25f);
+                mChart.setData(data);
+                mChart.invalidate();
+            }
         }
 
         public int getStepsCount(long startTime, long endTime) {
@@ -594,8 +470,6 @@ public class MainActivity extends AppCompatActivity
         ArrayList<BarEntry> entries1 = new ArrayList<BarEntry>();
 
         List<Long> keyList = new ArrayList<Long>(result.keySet());
-        referenceTimestamp = keyList.get(keyList.size() -1); //// TODO: 1
-
         Calendar C = Calendar.getInstance();
 
         for (int i=keyList.size() - 1; i >= 0; i--)
@@ -617,7 +491,6 @@ public class MainActivity extends AppCompatActivity
         return d;
     }
 
-    //todo remove
     private LineData generateLineData(LinkedHashMap<Long, Integer> result) {
         LineData d = new LineData();
 
@@ -650,12 +523,12 @@ public class MainActivity extends AppCompatActivity
 
         return d;
     }
+
     //Todo remove
     protected float getRandom(float range, float startsfrom) {
         return (float) (Math.random() * range) + startsfrom;
     }
 
-    //endregion
 
     //region Hamburger icon animations
     private ActionBarDrawerToggle setupDrawerToggle()
@@ -836,7 +709,8 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-
+    //Seperate class to format the X-axis on the graph so that appropriate dates are shown
+    //Otherwise labels are useless to user
     public class DayAxisValueFormatter implements IAxisValueFormatter
     {
         private BarLineChartBase<?> chart;
@@ -849,16 +723,14 @@ public class MainActivity extends AppCompatActivity
         public String getFormattedValue(float value, AxisBase axis)
         {
             //Value will be day of current month, so we need to append the month to it
-
-            int convInt = (int)value;
+            int convertedInt = (int)value;
 
             Calendar C = Calendar.getInstance();
             C.setTime(new Date());
 
             int month = C.get(Calendar.MONTH);
 
-
-            return convInt + "/" + month;
+            return convertedInt + "/" + month;
 
         }
     }

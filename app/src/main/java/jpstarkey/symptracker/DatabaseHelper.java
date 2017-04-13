@@ -24,7 +24,7 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 import static android.os.FileObserver.CREATE;
 import static android.provider.Contacts.SettingsColumns.KEY;
-import static jpstarkey.symptracker.R.id.daily;
+
 
 /**
  * Created by Joshs on 30/03/2017.
