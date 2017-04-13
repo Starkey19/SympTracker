@@ -18,7 +18,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -36,7 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static String DB_PATH = "";
 
     //Table names
@@ -145,7 +148,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         String CREATE_DAILY_TABLE = "CREATE TABLE " + TABLE_DAILY +
                 "(" +
                     KEY_DAILY_ID + " INTEGER PRIMARY KEY, " +
-                    KEY_DAILY_DATE + "INTEGER, " +              //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    KEY_DAILY_DATE + "TEXT, " +              //DATE stored as TEXT DD/MM/YYYY
                     KEY_DAILY_PAIN + "INTEGER " +
                 ")";
 
@@ -154,7 +157,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_GOAL_ID + " INTEGER PRIMARY KEY, " +
                     KEY_GOAL_NAME + " TEXT, " +
                     KEY_GOAL_DESCRIPTION + " TEXT, " +
-                    KEY_GOAL_ACCOMPLISH_DATE + " INTEGER, " +  //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    KEY_GOAL_ACCOMPLISH_DATE + " TEXT, " +  ///DATE stored as TEXT DD/MM/YYYY
                     KEY_GOAL_ACCOMPLISHED + " INTEGER" + //Boolean
                 ")";
 
@@ -163,7 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_PAIN_LEVELS_ID + " INTEGER PRIMARY KEY, " +
                     KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
                     KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
-                    KEY_PAIN_LEVELS_DATE + " INTEGER, " +   //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
+                    KEY_PAIN_LEVELS_DATE + " TEXT, " +   //DATE stored as TEXT DD/MM/YYYY
                     " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "+TABLE_SYMPTOMS+"("+KEY_SYMPTOM_ID+")";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
@@ -193,6 +196,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
     }
     //endregion
+
+
 
 
     public void addSymptom(Symptom symptom)
@@ -325,6 +330,78 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
     }
 
+    //Return a dailyLog for a specific date
+    public DailyLog getDailyLog(long date)
+    {
+        DailyLog newDailyLog = new DailyLog();
+        //SELECT 1 FROM TABLE_DAILY
+        //WHERE DATE = date
+        //Dates are stored in TEXT as DD/MM/YYYY
+
+        Date cDate = new Date();
+        cDate.setTime(date);
+        String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
+
+        String DAILY_SELECT_QUERY =
+                String.format("SELECT 1 FROM %s WHERE %s = %s",
+                        TABLE_DAILY,
+                        KEY_DAILY_DATE,
+                        sDate);
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(DAILY_SELECT_QUERY, null);
+        try
+        {
+            if (cursor.moveToFirst())
+            {
+                newDailyLog.setDate(cursor.getString(cursor.getColumnIndex(KEY_DAILY_DATE)));
+                newDailyLog.setPain(cursor.getInt(cursor.getColumnIndex(KEY_DAILY_PAIN)));
+            }
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error trying to get dailyLog for date " + sDate  + " from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()){
+                cursor.close();
+            }
+        }
+
+        return newDailyLog;
+    }
+
+    public List<DailyLog> getAllDailyLogs() {
+        List<DailyLog> logs = new ArrayList<>();
+
+        //SELECT * FROM daily
+        String DAILY_SELECT_QUERY =
+                String.format("SELECT * FROM %s", TABLE_DAILY);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(DAILY_SELECT_QUERY, null);
+        try
+        {
+            if(cursor.moveToFirst())
+            {
+                do
+                {
+                    DailyLog newLog = new DailyLog();
+                    newLog.date = cursor.getString(cursor.getColumnIndex(KEY_DAILY_DATE));
+                    newLog.pain = cursor.getInt(cursor.getColumnIndex(KEY_DAILY_PAIN));
+
+                    logs.add(newLog);
+
+                } while(cursor.moveToNext());
+            }
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error while trying to get dailyLogs from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed())
+            {
+                cursor.close();
+            }
+        }
+        return logs;
+    }
 
     //region Querying
     public List<Symptom> getAllSymptoms() {

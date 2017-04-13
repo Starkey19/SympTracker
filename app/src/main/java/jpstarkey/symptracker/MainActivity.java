@@ -84,10 +84,12 @@ import java.util.concurrent.TimeUnit;
 import static android.R.attr.data;
 import static android.R.attr.format;
 import static android.R.attr.fragment;
+import static android.media.CamcorderProfile.get;
 import static android.os.Build.VERSION_CODES.M;
 import static com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getTimeInstance;
+import static jpstarkey.symptracker.R.id.seekPainLevel;
 import static jpstarkey.symptracker.R.id.view;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity
     private ActionBarDrawerToggle drawerToggle;
 
     private TextView currentTotalSteps;
+    private Context mContext;
 
 
      /**Google fitness API
@@ -155,6 +158,9 @@ public class MainActivity extends AppCompatActivity
 
         //Initialize and build the google fit API client
         buildFitnessClient();
+
+        //Store the application context
+        this.mContext = getApplicationContext();
 
         //Store the Fitness Client in the applicationContext for use in other fragments
         if (mClient != null)
@@ -368,6 +374,12 @@ public class MainActivity extends AppCompatActivity
         {
             this.mChart = chart;
             mClient = client;
+            this.context = context;
+
+            if(context != null)
+            {
+                mContext = context;
+            }
         }
 
         protected LinkedHashMap<Long, Integer> doInBackground(Void ...params) {
@@ -465,6 +477,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //region generate bar and line data from results
     private BarData generateBarData(LinkedHashMap<Long, Integer> result) {
 
         ArrayList<BarEntry> entries1 = new ArrayList<BarEntry>();
@@ -504,7 +517,7 @@ public class MainActivity extends AppCompatActivity
             Long key = keyList.get(i);
             C.setTimeInMillis(key);
             int dValue = C.get(Calendar.DAY_OF_MONTH);
-            entries.add(new BarEntry(dValue, getRandom(15,5)));
+            entries.add(new BarEntry(dValue, getPainLevelForDay(key)));
         }
 
         LineDataSet set = new LineDataSet(entries, "Pain level");
@@ -523,6 +536,38 @@ public class MainActivity extends AppCompatActivity
 
         return d;
     }
+//endregion
+
+    public int getPainLevelForDay(long date)
+    {
+        int painLevel = 0;
+        //Retrieve the pain level from the database based on date
+        //If nothing exists, return 0 as user likely hasn't inserted a painLevel for this date
+        Calendar C = Calendar.getInstance();
+        C.setTimeInMillis(date);
+        int day = C.get(Calendar.DAY_OF_MONTH);
+        int month = C.get(Calendar.MONTH) + 1; //index of month starts at 0
+        int year = C.get(Calendar.YEAR);
+
+
+
+        if(mContext != null)
+        {
+            DatabaseHelper db = DatabaseHelper.getInstance(mContext);
+            db.getDailyLog(date);
+        }
+
+
+
+        //Insert daily log into DB
+
+
+
+
+        return painLevel;
+    }
+
+
 
     //Todo remove
     protected float getRandom(float range, float startsfrom) {
@@ -607,7 +652,7 @@ public class MainActivity extends AppCompatActivity
                 fragmentClass = SettingsFragment.class;
                 break;
             case R.id.nav_medications_fragment:
-                fragmentClass = Medications.class; //TODO
+                fragmentClass = Medications.class;
                 break;
 
             default:
@@ -728,7 +773,7 @@ public class MainActivity extends AppCompatActivity
             Calendar C = Calendar.getInstance();
             C.setTime(new Date());
 
-            int month = C.get(Calendar.MONTH);
+            int month = C.get(Calendar.MONTH) + 1; //Months are indexed from 1...
 
             return convertedInt + "/" + month;
 

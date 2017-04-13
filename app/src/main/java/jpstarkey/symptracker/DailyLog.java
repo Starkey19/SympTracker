@@ -7,7 +7,7 @@ package jpstarkey.symptracker;
 public class DailyLog
 {
     int _id;
-    int date;
+    String date;
     int pain;
 
     public DailyLog()
@@ -15,7 +15,7 @@ public class DailyLog
 
     }
 
-    public DailyLog(int date, int pain)
+    public DailyLog(String date, int pain)
     {
         this.date = date;
         this.pain = pain;
@@ -31,12 +31,12 @@ public class DailyLog
         this._id = _id;
     }
 
-    public int getDate()
+    public String getDate()
     {
         return date;
     }
 
-    public void setDate(int date)
+    public void setDate(String date)
     {
         this.date = date;
     }

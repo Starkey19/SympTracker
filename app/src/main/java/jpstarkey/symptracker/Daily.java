@@ -13,56 +13,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.github.mikephil.charting.charts.CombinedChart;
-import com.github.mikephil.charting.charts.CombinedChart.DrawOrder;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.CombinedData;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.XAxis.XAxisPosition;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.data.BubbleData;
-import com.github.mikephil.charting.data.BubbleDataSet;
-import com.github.mikephil.charting.data.BubbleEntry;
-import com.github.mikephil.charting.data.CandleData;
-import com.github.mikephil.charting.data.CandleDataSet;
-import com.github.mikephil.charting.data.CandleEntry;
-import com.github.mikephil.charting.data.CombinedData;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.data.ScatterData;
-import com.github.mikephil.charting.data.ScatterDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.interfaces.datasets.IDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.data.DataSet;
-import com.google.android.gms.fitness.data.DataType;
-import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.result.DailyTotalResult;
-
-
-import com.google.android.gms.common.api.GoogleApiClient;
-
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -80,6 +36,10 @@ public class Daily extends Fragment
 {
     private OnFragmentInteractionListener mListener;
     private TextView currentTotalSteps;
+    private TextView currentDate;
+    private SeekBar seekPainLevel;
+    private TextView tvPainLevel;
+    private Button submitPainLevel;
 
     public Daily()
     {
@@ -121,12 +81,73 @@ public class Daily extends Fragment
         View view = inflater.inflate(R.layout.fragment_daily, container, false);
 
         currentTotalSteps = (TextView) view.findViewById(R.id.tvTotalSteps);
+        currentDate = (TextView) view.findViewById(R.id.tvCurrentDate);
+        tvPainLevel = (TextView) view.findViewById(R.id.tvPainLevel);
+        submitPainLevel = (Button) view.findViewById(R.id.btnSubmitPainLevel);
+
+        seekPainLevel = (SeekBar) view.findViewById(R.id.seekPainLevel);
+
+        //Initialize tvPainLevel
+        tvPainLevel.setText(seekPainLevel.getProgress() + "/" + seekPainLevel.getMax());
+
+
+        //Listener for the seekBar pain level
+        seekPainLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            int progress = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+            {
+                progress = i; // i = progress value
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+                //Update tvPainLevel
+                tvPainLevel.setText(progress + "/" + seekBar.getMax());
+            }
+        });
+
+        //Button submit pain level for current day
+        submitPainLevel.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
+
+                //Dates are stored as DD/MM/YYYY in DB so need to format to this first
+                Date cDate = new Date(); //Current date
+                String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
+
+                //Insert daily log into DB
+                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
+
+                db.addDailyLog(dailyLog);
+            }
+        });
+
+        //Format the date for currentDate textView:
+        Date now = new Date();
+        String currentDateTimeString = DateFormat.getDateInstance().format(now);
+        currentDate.setText(currentDateTimeString);
+
 
         GlobalState state = ((GlobalState) this.getContext().getApplicationContext());
         if (currentTotalSteps != null)
         {
             currentTotalSteps.setText(Float.toString(state.getDailySteps()));
         }
+
+
         return view;
     }
 
