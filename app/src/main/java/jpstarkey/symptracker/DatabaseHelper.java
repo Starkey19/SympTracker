@@ -39,7 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
     private static String DB_PATH = "";
 
     //Table names
@@ -141,7 +141,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_MEDICATION_ID + " INTEGER PRIMARY KEY," + //Primary key
                     KEY_MEDICATION_NAME + " TEXT," +
                     KEY_MEDICATION_AMOUNT + " INTEGER," +
-                    KEY_MEDICATION_DESCRIPTION + "TEXT, " +
+                    KEY_MEDICATION_DESCRIPTION + " TEXT, " +
                     KEY_MEDICATION_FREQUENCY + " INTEGER" +
                 ")";
 

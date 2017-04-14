@@ -14,10 +14,10 @@ import static android.R.attr.priority;
 /**
  * Created by Joshs on 31/03/2017.
  */
-//Todo rename to symptoms
-public class aCursorAdapter extends CursorAdapter
+
+public class SymptomCursorAdapter extends CursorAdapter
 {
-    public aCursorAdapter(Context context, Cursor cursor)
+    public SymptomCursorAdapter(Context context, Cursor cursor)
     {
         super(context, cursor, 0);
     }

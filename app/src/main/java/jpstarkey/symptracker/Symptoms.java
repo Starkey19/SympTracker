@@ -17,15 +17,9 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import static android.R.attr.id;
-import static jpstarkey.symptracker.R.id.view;
 
 
 /**
@@ -45,7 +39,7 @@ public class Symptoms extends Fragment implements
 
     private Button btnAddSymptom;
     private ListView lvItems;
-    private aCursorAdapter cursorAdapter;
+    private SymptomCursorAdapter cursorAdapter;
     private DatabaseHelper handler;
 
 
@@ -154,7 +148,7 @@ public class Symptoms extends Fragment implements
         lvItems = (ListView) this.getView().findViewById(R.id.sympItems);
         setUpLongClick();
         //Setup cursor adapter, added getview,getConext here
-        cursorAdapter = new aCursorAdapter(this.getView().getContext(), sympCursor);
+        cursorAdapter = new SymptomCursorAdapter(this.getView().getContext(), sympCursor);
         //Attach the cursor adapter to the listView
         lvItems.setAdapter(cursorAdapter);
     }

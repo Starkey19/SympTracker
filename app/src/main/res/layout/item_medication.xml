@@ -1,0 +1,40 @@
+<RelativeLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="60dp"
+    android:padding="1dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/med_item_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/states_selector_list"
+        android:contentDescription="Icon"
+        android:src="@drawable/ic_local_hospital" />
+
+
+    <TextView
+        android:id="@+id/medicationName"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@id/med_item_icon"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="2dp"
+        android:background="@drawable/states_selector_list"
+        android:gravity="center_horizontal"
+        android:textAppearance="?android:attr/textAppearanceListItem"/>
+
+</RelativeLayout>

@@ -106,7 +106,8 @@ public class MainActivity extends AppCompatActivity
         Medications.OnFragmentInteractionListener,
         Symptoms.OnFragmentInteractionListener,
         AddDialog.OnFragmentInteractionListener,
-        EditDialog.OnFragmentInteractionListener
+        EditDialog.OnFragmentInteractionListener,
+        AddMedDialog.OnFragmentInteractionListener
 {
 
     //Navigation drawer
