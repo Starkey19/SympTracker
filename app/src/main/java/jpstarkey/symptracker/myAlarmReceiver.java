@@ -3,6 +3,7 @@ package jpstarkey.symptracker;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 public class myAlarmReceiver extends BroadcastReceiver
 {
@@ -12,8 +13,9 @@ public class myAlarmReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        Intent i = new Intent(context, MyIntentService.class);
-        i.putExtra("foo", "bar");
-        context.startService(i);
+//        Intent i = new Intent(context, MyIntentService.class);
+//        i.putExtra("foo", "bar");
+//        context.startService(i);
+        Log.i("AlarmReceive", "onReceive");
     }
 }

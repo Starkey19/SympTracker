@@ -486,9 +486,68 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //endregion
 
     //region updating
+    public int updateSymptomById(int id, Symptom newSymptom)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_SYMPTOM_NAME, newSymptom.getName());
+        values.put(KEY_SYMPTOM_DESCRIPTION, newSymptom.getDescription());
+        values.put(KEY_SYMPTOM_PAIN, newSymptom.getPain());
+
+        return db.update(TABLE_SYMPTOMS, values, KEY_SYMPTOM_ID + " = " + Integer.toString(id), null);
+    }
     //endregion
 
     //region deletion of records
+    public void deleteSymptomById(int id)
+    {
+        SQLiteDatabase db = getReadableDatabase();
+        db.beginTransaction();
+        try
+        {
+            db.delete(TABLE_SYMPTOMS, KEY_SYMPTOM_ID + "=" + id, null);
+            db.setTransactionSuccessful();
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error whilst trying to delete symptom id: " + Integer.toString(id));
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void deleteDailyLogById(int id)
+    {
+        SQLiteDatabase db = getReadableDatabase();
+        db.beginTransaction();
+        try
+        {
+            db.delete(TABLE_DAILY, KEY_DAILY_ID + "=" + id, null);
+            db.setTransactionSuccessful();
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error whilst trying to delete daily log id: " + Integer.toString(id));
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void deleteMedicationById(int id)
+    {
+        SQLiteDatabase db = getReadableDatabase();
+        db.beginTransaction();
+        try
+        {
+            db.delete(TABLE_MEDICATIONS, KEY_MEDICATION_ID + "=" + id, null);
+            db.setTransactionSuccessful();
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error whilst trying to delete medication with id: " + Integer.toString(id));
+        } finally {
+            db.endTransaction();
+        }
+    }
+
     public void deleteAllSymptoms()
     {
         SQLiteDatabase db = getReadableDatabase();

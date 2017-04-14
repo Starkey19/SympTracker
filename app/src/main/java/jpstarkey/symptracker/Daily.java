@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -132,6 +133,7 @@ public class Daily extends Fragment
                 DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
 
                 db.addDailyLog(dailyLog);
+                Toast.makeText(view.getContext(), "Pain level submitted for " + sDate, Toast.LENGTH_SHORT).show();
             }
         });
 

@@ -14,7 +14,7 @@
 
 
     <TextView
-        android:id="@+id/lbl_symptom_name"
+        android:id="@+id/lbl_edit_symptom_name"
         android:layout_width="match_parent"
         android:layout_height="24dp"
         android:text="Symptom name"
@@ -24,7 +24,7 @@
         android:layout_marginRight="8dp"/>
 
     <EditText
-        android:id="@+id/txt_symptom_name"
+        android:id="@+id/txt_edit_symptom_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
@@ -35,7 +35,7 @@
         android:inputType="text"/>
 
     <TextView
-        android:id="@+id/lbl_symptom_description"
+        android:id="@+id/lbl_edit_symptom_description"
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:layout_marginLeft="8dp"
@@ -44,7 +44,7 @@
         android:text="Symptom Description"/>
 
     <EditText
-        android:id="@+id/txt_symptom_description"
+        android:id="@+id/txt_edit_symptom_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"

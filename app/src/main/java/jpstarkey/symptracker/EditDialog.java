@@ -19,42 +19,38 @@ import android.widget.TextView;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link AddDialog.OnFragmentInteractionListener} interface
+ * {@link EditDialog.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link AddDialog#newInstance} factory method to
+ * Use the {@link EditDialog#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AddDialog extends DialogFragment implements TextView.OnEditorActionListener
+public class EditDialog extends DialogFragment implements TextView.OnEditorActionListener
 {
-
     private EditText mSymptomName;
     private EditText mSymptomDescription;
 
+    private Symptom mSymptomToEdit;
+
     private OnFragmentInteractionListener mListener;
 
-    public AddDialog()
+    public EditDialog()
     {
         // Required empty public constructor
     }
 
-    //Interface listener for adding symmptoms via dialogs
-    public interface AddDialogListener
+    public interface EditDialogListener
     {
-        void onFinishAddDialog(String inputName, String inputDesc);
+        void onFinishEditDialog(long id, String inputName, String inputDesc);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     * @return A new instance of fragment AddDialog.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static AddDialog newInstance(String title)
+    public static EditDialog newInstance(String title, long id, Symptom symptomToEdit)
     {
-        AddDialog fragment = new AddDialog();
+        EditDialog fragment = new EditDialog();
         Bundle args = new Bundle();
         args.putString("title", title);
-
+        args.putLong("itemId", id);
+        args.putString("name", symptomToEdit.getName());
+        args.putString("description", symptomToEdit.getDescription());
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,34 +72,23 @@ public class AddDialog extends DialogFragment implements TextView.OnEditorAction
     //Send data back to parent fragment instead of activity
     public void sendBackResult()
     {
-        AddDialogListener listener = (AddDialogListener) getTargetFragment();
-        listener.onFinishAddDialog(mSymptomName.getText().toString(), mSymptomDescription.getText().toString());
+        EditDialogListener listener = (EditDialogListener) getTargetFragment();
+        long id = getArguments().getLong("itemId");
+        listener.onFinishEditDialog(id, mSymptomName.getText().toString(), mSymptomDescription.getText().toString());
         dismiss();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null)
-        {
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_add_dialog, container, false);
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // Get fields from view
-        mSymptomName = (EditText) view.findViewById(R.id.txt_symptom_name);
-        mSymptomDescription = (EditText) view.findViewById(R.id.txt_symptom_description);
+        mSymptomName = (EditText) view.findViewById(R.id.txt_edit_symptom_name);
+        mSymptomDescription = (EditText) view.findViewById(R.id.txt_edit_symptom_description);
+
+        //Set editText name and desc from the selected symptom:
+        mSymptomName.setText(getArguments().getString("name"));
+        mSymptomDescription.setText(getArguments().getString("description"));
+
         // Fetch arguments from bundle and set title
         String title = getArguments().getString("title", "Enter Name");
         getDialog().setTitle(title);
@@ -115,6 +100,24 @@ public class AddDialog extends DialogFragment implements TextView.OnEditorAction
 
         getDialog().getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null)
+        {
+
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState)
+    {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_edit_dialog, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -146,6 +149,7 @@ public class AddDialog extends DialogFragment implements TextView.OnEditorAction
         super.onDetach();
         mListener = null;
     }
+
 
     /**
      * This interface must be implemented by activities that contain this

@@ -34,15 +34,15 @@ public class aCursorAdapter extends CursorAdapter
     {
         //Get fields
         TextView sympName = (TextView) view.findViewById(R.id.symptomName);
-        TextView sympBody = (TextView) view.findViewById(R.id.symptomBody);
+        //TextView sympBody = (TextView) view.findViewById(R.id.symptomBody);
 
         //Extract from cursor
         String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-        String body = cursor.getString(cursor.getColumnIndexOrThrow("description"));
+        //String body = cursor.getString(cursor.getColumnIndexOrThrow("description"));
         //pain level int
 
         //Populate fields with extracted properties
         sympName.setText(name);
-        sympBody.setText(body);
+        //sympBody.setText(body);
     }
 }

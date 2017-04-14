@@ -1,6 +1,7 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,15 +9,22 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import static android.R.attr.id;
 import static jpstarkey.symptracker.R.id.view;
 
 
@@ -30,7 +38,9 @@ import static jpstarkey.symptracker.R.id.view;
  */
 public class Symptoms extends Fragment implements
         AddDialog.AddDialogListener,
-        AddDialog.OnFragmentInteractionListener
+        AddDialog.OnFragmentInteractionListener,
+        EditDialog.EditDialogListener,
+        EditDialog.OnFragmentInteractionListener
 {
 
     private Button btnAddSymptom;
@@ -136,7 +146,7 @@ public class Symptoms extends Fragment implements
 
     public void populateSymptoms()
     {
-        DatabaseHelper handler = DatabaseHelper.getInstance(this.getContext());
+        handler = DatabaseHelper.getInstance(this.getContext());
         SQLiteDatabase db = handler.getWritableDatabase();
         Cursor sympCursor = db.rawQuery("SELECT * FROM Symptoms", null);
 
@@ -158,9 +168,118 @@ public class Symptoms extends Fragment implements
             {
                 //TODO: Bring up edit dialog for symptom with this ID:
                 Log.i("TAG", "ID: " + Long.toString(l));
+                registerForContextMenu(adapterView);
+
             }
         });
 
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("Context Menu");
+        menu.add(0, v.getId(), 0, "Edit");
+        menu.add(0, v.getId(), 0, "Delete");
+
+        //AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+        //long itemId = info.id;
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(item.getTitle()=="Edit")
+        {
+            editSymptom(item);
+
+        }
+        else if(item.getTitle()=="Delete")
+        {
+            deleteSymptom(item);
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void editSymptom(MenuItem item)
+    {
+        //Retrieve symptom from cursor using id
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        long itemId = info.id;
+        Cursor cursor = (cursorAdapter).getCursor();
+        cursor.moveToPosition((int) itemId);
+        String prevName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+        String prevDesc = cursor.getString(cursor.getColumnIndexOrThrow("description"));
+
+        Symptom symptomToEdit = new Symptom(prevName, prevDesc, 0);
+        //cursor.close();
+
+
+        FragmentManager fm = getFragmentManager();
+        EditDialog editDialog = EditDialog.newInstance("Edit Symptom", itemId, symptomToEdit);
+        editDialog.setTargetFragment(Symptoms.this, 300);
+        editDialog.show(fm, "edit_symptom");
+
+        Log.i("Symptoms", "edit Symptom clicked");
+    }
+
+    public void deleteSymptom(final MenuItem item)
+    {
+        //Display an alertDialog with 'Are you sure?' message:
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+        builder.setTitle("Confirm");
+        builder.setMessage("Are you sure you want to delete this?");
+
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int i)
+                    {
+                        //User is sure.. close dialog and delete
+                        delete(item);
+
+                        dialog.dismiss();
+                    }
+                });
+
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int i)
+            {
+                //Don't delete anything
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+
+
+
+
+
+        Log.i("Symptoms", "delete Symptom clicked");
+    }
+
+    public void delete(MenuItem item)
+    {
+        //Retrieve symptom from cursor using id
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        long itemId = info.id;
+        if (handler != null)
+        {
+            handler.deleteSymptomById((int) itemId);
+        }
+        else
+        {
+            Log.d("Symptoms", "db handler is null");
+        }
+
+        populateSymptoms();
+        //Todo toast
     }
 
     @Override
@@ -171,7 +290,7 @@ public class Symptoms extends Fragment implements
     }
 
     @Override
-    public void onFinishEditDialog(String inputSymptomName, String inputSymptomDesc)
+    public void onFinishAddDialog(String inputSymptomName, String inputSymptomDesc)
     {
         Log.i("Symptoms", inputSymptomName + " " + inputSymptomDesc);
 
@@ -185,10 +304,28 @@ public class Symptoms extends Fragment implements
     }
 
     @Override
+    public void onFinishEditDialog(long id, String inputName, String inputDesc)
+    {
+        Log.i("SymptomsEdit", inputName + " " + inputDesc + Long.toString((id)));
+        //Update this symptom in the DB
+        Symptom editedSymptom = new Symptom(inputName, inputDesc, 0);
+
+        if (handler != null)
+        {
+            handler.updateSymptomById((int)id, editedSymptom);
+        }
+
+        //"Refresh" the fragment with new content
+        populateSymptoms();
+    }
+
+
+    @Override
     public void onFragmentInteraction(Uri uri)
     {
 
     }
+
 
     /**
      * This interface must be implemented by activities that contain this
