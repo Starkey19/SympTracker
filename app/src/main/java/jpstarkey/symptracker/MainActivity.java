@@ -556,6 +556,9 @@ public class MainActivity extends AppCompatActivity
             DatabaseHelper db = DatabaseHelper.getInstance(mContext);
 
             painLevel = db.getDailyLog(date).getPain();
+
+            //List<DailyLog> debug = db.getAllDailyLogs();
+            //Log.i("TAG", Integer.toString(debug.size()));
         }
 
 

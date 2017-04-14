@@ -344,15 +344,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
         Log.i("GETDAILYLOG", "Date = " + sDate);
 
-//        String DAILY_SELECT_QUERY =
-//                String.format("SELECT * FROM %s WHERE %s = %s",
-//                        TABLE_DAILY,
-//                        KEY_DAILY_DATE,
-//                        sDate);
         String DAILY_SELECT_QUERY =
-                String.format("SELECT * FROM %s",
-                        TABLE_DAILY
-                       );
+                String.format("SELECT * FROM %s WHERE %s = '%s'",
+                        TABLE_DAILY,
+                        KEY_DAILY_DATE,
+                        sDate);
+
+        Log.i("GETDAILYLOG", DAILY_SELECT_QUERY);
+//        String DAILY_SELECT_QUERY =
+//                String.format("SELECT * FROM %s",
+//                        TABLE_DAILY
+//                       );
+
+
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(DAILY_SELECT_QUERY, null);
