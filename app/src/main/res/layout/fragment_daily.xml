@@ -63,7 +63,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:gravity="center_horizontal"
-            android:text="@string/home_welcome_text"
+            android:text="@string/info_dailyLog"
             android:textColor="@color/white"/>
 
     </LinearLayout>

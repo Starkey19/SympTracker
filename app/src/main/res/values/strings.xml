@@ -36,7 +36,7 @@
     </string-array>
     <string name="title_intent_preference">intent title</string>
     <string name="home_welcome_text">Welcome to SympTracker, Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus scelerisque enim nec ornare. In hac habitasse platea dictumst. Donec eget elit lobortis ex rhoncus egestas fringilla eu est. Aenean volutpat dui nec porttitor elementum. Sed sit amet fermentum dolor. Aenean bibendum consectetur imperdiet.</string>
-
+    <string name="info_dailyLog">Below you\'ll find the information for your current activity. The total steps you\'ve performed so far today are located on the left side and your input for your current pain level and any symptoms you want to record for today are on the right hand side.</string>
 
     <!--TITLES-->
     <string name="title_medications">Medications</string>
