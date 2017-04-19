@@ -1,6 +1,7 @@
 package jpstarkey.symptracker;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,10 +22,15 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import static android.os.Build.VERSION_CODES.M;
+import static jpstarkey.symptracker.R.id.sympItems;
+import static jpstarkey.symptracker.R.id.text;
+import static jpstarkey.symptracker.R.id.view;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,6 +48,9 @@ public class Daily extends Fragment
     private SeekBar seekPainLevel;
     private TextView tvPainLevel;
     private Button submitPainLevel;
+    private Button btnAddDailySymptoms;
+
+    private ArrayList mSelectedSymptoms;
 
     public Daily()
     {
@@ -84,7 +94,8 @@ public class Daily extends Fragment
         currentTotalSteps = (TextView) view.findViewById(R.id.tvTotalSteps);
         currentDate = (TextView) view.findViewById(R.id.tvCurrentDate);
         tvPainLevel = (TextView) view.findViewById(R.id.tvPainLevel);
-        submitPainLevel = (Button) view.findViewById(R.id.btnSubmitPainLevel);
+        //submitPainLevel = (Button) view.findViewById(R.id.btnSubmitPainLevel);
+        btnAddDailySymptoms = (Button) view.findViewById(R.id.btnAddDailySymptoms);
 
         seekPainLevel = (SeekBar) view.findViewById(R.id.seekPainLevel);
 
@@ -118,22 +129,32 @@ public class Daily extends Fragment
         });
 
         //Button submit pain level for current day
-        submitPainLevel.setOnClickListener(new View.OnClickListener()
+//        submitPainLevel.setOnClickListener(new View.OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View view)
+//            {
+//                DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
+//
+//                //Dates are stored as DD/MM/YYYY in DB so need to format to this first
+//                Date cDate = new Date(); //Current date
+//                String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
+//
+//                //Insert daily log into DB
+//                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
+//
+//                db.addDailyLog(dailyLog);
+//                Toast.makeText(view.getContext(), "Pain level submitted for " + sDate, Toast.LENGTH_SHORT).show();
+//            }
+//        });
+
+        //Button to raise dialog to add symptoms for a daily log
+        btnAddDailySymptoms.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
-
-                //Dates are stored as DD/MM/YYYY in DB so need to format to this first
-                Date cDate = new Date(); //Current date
-                String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
-
-                //Insert daily log into DB
-                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
-
-                db.addDailyLog(dailyLog);
-                Toast.makeText(view.getContext(), "Pain level submitted for " + sDate, Toast.LENGTH_SHORT).show();
+                createSymptomsCheckBoxDlg();
             }
         });
 
@@ -153,7 +174,80 @@ public class Daily extends Fragment
         return view;
     }
 
+    public void createSymptomsCheckBoxDlg()
+    {
+        //Query DB for all symptoms user has stored
+        DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
+        final List<Symptom> symptoms = db.getAllSymptoms();
+        final List<Symptom> selectedSymptoms = new ArrayList<>();
 
+        List<String> symptomNames = new ArrayList<>();
+
+        for (Symptom symptom: symptoms)
+        {
+            symptomNames.add(symptom.name);
+        }
+
+        final CharSequence[] items = symptomNames.toArray(new CharSequence[symptomNames.size()]);
+        mSelectedSymptoms = new ArrayList();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+        builder.setTitle("Check any symptoms that apply today");
+        builder.setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int indexSelected, boolean bChecked)
+            {
+                if (bChecked)
+                {
+                    mSelectedSymptoms.add(indexSelected);
+                    selectedSymptoms.add(symptoms.get(indexSelected));
+
+                }
+                else if (mSelectedSymptoms.contains(indexSelected))
+                {
+                    //It already exists, its being checked again so remove it
+                    mSelectedSymptoms.remove(Integer.valueOf(indexSelected));
+                    selectedSymptoms.remove(symptoms.get(indexSelected));
+                }
+            }
+        }).setPositiveButton("Submit Daily Log", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                //User is finished adding symptoms
+                //Update dailyLog in DB with added symptoms
+
+                DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
+
+                //Dates are stored as DD/MM/YYYY in DB so need to format to this first
+                Date cDate = new Date(); //Current date
+                String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
+
+                //Insert daily log into DB
+                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
+
+                db.addDailyLogWithSymptoms(dailyLog, selectedSymptoms);
+                createToast("Pain level and symptoms submitted for " + sDate);
+
+            }
+        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                //User cancelled added any symptoms.
+            }
+        })
+        .create()
+            .show();
+    }
+
+    public void createToast(String textToShow)
+    {
+        Toast.makeText(this.getContext(), textToShow, Toast.LENGTH_SHORT).show();
+    }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri)

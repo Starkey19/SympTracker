@@ -3,13 +3,10 @@ package jpstarkey.symptracker;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.MatrixCursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.ContactsContract;
 import android.util.Log;
 
 
@@ -20,13 +17,10 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
-import static android.os.FileObserver.CREATE;
-import static android.provider.Contacts.SettingsColumns.KEY;
 
 
 /**
@@ -39,7 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 9;
     private static String DB_PATH = "";
 
     //Table names
@@ -47,7 +41,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static final String TABLE_MEDICATIONS = "Medications";
     private static final String TABLE_DAILY = "Daily";
     private static final String TABLE_GOALS = "Goals";
-    private static final String TABLE_PAIN_LEVELS = "Pain_Levels";
+    private static final String TABLE_DAILY_SYMPTOMS = "Daily_Symptoms";
 
     //Daily table columns
     private static final String KEY_DAILY_ID = "_id";
@@ -62,10 +56,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static final String KEY_GOAL_ACCOMPLISHED = "accomplished";
 
     //Pain levels table
-    private static final String KEY_PAIN_LEVELS_ID = "_id";
-    private static final String KEY_PAIN_LEVELS_SYMPTOM_ID_FK = "symptom_id";
-    private static final String KEY_PAIN_LEVELS_LEVEL = "pain_level";
-    private static final String KEY_PAIN_LEVELS_DATE = "date";
+    private static final String KEY_DAILY_SYMPTOMS_ID = "_id";
+    private static final String KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK = "symptom_id";
+    private static final String KEY_DAILY_SYMPTOMS_DAILY_ID_FK = "daily_id";
 
     //Symptoms table columns
     private static final String KEY_SYMPTOM_ID = "_id";
@@ -161,21 +154,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_GOAL_ACCOMPLISHED + " INTEGER" + //Boolean
                 ")";
 
-        String CREATE_PAIN_LEVELS_TABLE = "CREATE TABLE " + TABLE_PAIN_LEVELS +
+        //Link table for daily log and stored symptoms:
+        String CREATE_DAILY_SYMPTOMS_TABLE = "CREATE TABLE " + TABLE_DAILY_SYMPTOMS +
                 "(" +
-                    KEY_PAIN_LEVELS_ID + " INTEGER PRIMARY KEY, " +
-                    KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
-                    KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
-                    KEY_PAIN_LEVELS_DATE + " TEXT, " +   //DATE stored as TEXT DD/MM/YYYY
-                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "+TABLE_SYMPTOMS+"("+KEY_SYMPTOM_ID+")";
+                    KEY_DAILY_SYMPTOMS_ID + " INTEGER PRIMARY KEY, " +
+                    KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK + " INTEGER, " +
+                    KEY_DAILY_SYMPTOMS_DAILY_ID_FK + " INTEGER, " +
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK +") REFERENCES " + TABLE_SYMPTOMS + "(" + KEY_SYMPTOM_ID + ")" +
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_DAILY_ID_FK +") REFERENCES " + TABLE_DAILY + "(" + KEY_DAILY_ID + "))";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_MEDICATIONS_TABLE);
         db.execSQL(CREATE_DAILY_TABLE);
         db.execSQL(CREATE_GOALS_TABLE);
-        //db.execSQL(CREATE_PAIN_LEVELS_TABLE);
-
-
+        db.execSQL(CREATE_DAILY_SYMPTOMS_TABLE);
     }
 
     //Called when the database needs to be upgraded
@@ -185,20 +177,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
     {
         if (oldVersion != newVersion)
         //Drop all old tables and recreated them
-        //TODO will need changing with other DB schmea changes
+        //TODO will need changing with other DB schema changes
         {
+            db.execSQL("DROP TABLE IF EXISTS Pain_Levels");
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DAILY_SYMPTOMS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DAILY);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYMPTOMS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEDICATIONS);
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DAILY);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_GOALS);
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PAIN_LEVELS);
             onCreate(db);
         }
     }
     //endregion
-
-
-
 
     public void addSymptom(Symptom symptom)
     {
@@ -248,16 +238,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
             db.endTransaction();
         }
     }
-    //TODO
-    /*
-        String CREATE_PAIN_LEVELS_TABLE = "CREATE TABLE " + TABLE_PAIN_LEVELS +
-                "(" +
-                    KEY_PAIN_LEVELS_ID + " INTEGER PRIMARY KEY, " +
-                    KEY_PAIN_LEVELS_SYMPTOM_ID_FK + " INTEGER, " +
-                    KEY_PAIN_LEVELS_LEVEL + " INTEGER, " +
-                    KEY_PAIN_LEVELS_DATE + " INTEGER, " +   //DATE stored as int (eg system.CurrentTimeMillis() so can be converted to and fro
-                    " FOREIGN KEY ("+KEY_PAIN_LEVELS_SYMPTOM_ID_FK+") REFERENCES "+TABLE_SYMPTOMS+"("+KEY_SYMPTOM_ID+")";
-     */
+
 
     public void addDailyLog(DailyLog daily)
     {
@@ -280,6 +261,52 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             db.endTransaction();
         }
+    }
+
+    public void addDailyLogWithSymptoms(DailyLog daily, List<Symptom> symptoms)
+    {
+        //create/open the database for writing
+        SQLiteDatabase db = getWritableDatabase();
+
+        long daily_id = 0;
+
+        //Wrap insert inside a transaction for performance
+        db.beginTransaction();
+        try
+        {
+            ContentValues values = new ContentValues();
+            values.put(KEY_DAILY_DATE, daily.date);
+            values.put(KEY_DAILY_PAIN, daily.pain);
+
+            daily_id = db.insertOrThrow(TABLE_DAILY, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add daily log  to database");
+        } finally
+        {
+            db.endTransaction();
+        }
+
+        //Now insert the association between symptoms and this daily log
+        for(Symptom symptom : symptoms)
+        {
+            db.beginTransaction();
+            try
+            {
+                ContentValues values = new ContentValues();
+                values.put(KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK, symptom.get_id());
+                values.put(KEY_DAILY_SYMPTOMS_DAILY_ID_FK, daily_id);
+
+                long _id = db.insertOrThrow(TABLE_DAILY_SYMPTOMS, null, values);
+                db.setTransactionSuccessful();
+            } catch (Exception e) {
+                Log.d(TAG, "Error while trying to add daily log  to database");
+            } finally
+            {
+                db.endTransaction();
+            }
+        }
+
     }
 
     public void addGoal(Goal goal)
@@ -351,12 +378,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
                         sDate);
 
         Log.i("GETDAILYLOG", DAILY_SELECT_QUERY);
-//        String DAILY_SELECT_QUERY =
-//                String.format("SELECT * FROM %s",
-//                        TABLE_DAILY
-//                       );
-
-
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(DAILY_SELECT_QUERY, null);
@@ -377,6 +398,38 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
 
         return newDailyLog;
+    }
+
+    public Symptom getSymptomById(int symptomId)
+    {
+        Symptom newSymptom = new Symptom();
+
+        String SYMPTOM_1_SELECT_QUERY =
+                String.format("SELECT * FROM %s WHERE %s = %s",
+                        TABLE_SYMPTOMS,
+                        KEY_SYMPTOM_ID,
+                        symptomId);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(SYMPTOM_1_SELECT_QUERY, null);
+        try
+        {
+            if (cursor.moveToFirst())
+            {
+                newSymptom.set_id(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_SYMPTOM_ID)));
+                newSymptom.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_SYMPTOM_NAME)));
+                newSymptom.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(KEY_SYMPTOM_DESCRIPTION)));
+            }
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error trying to get symptom for symptom with id " + symptomId + " from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()){
+                cursor.close();
+            }
+        }
+
+        return newSymptom;
     }
 
     public List<DailyLog> getAllDailyLogs() {
@@ -431,8 +484,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
                 do
                 {
                     Symptom newSymptom = new Symptom();
+                    newSymptom._id = cursor.getInt(cursor.getColumnIndex(KEY_SYMPTOM_ID));
                     newSymptom.name = cursor.getString(cursor.getColumnIndex(KEY_SYMPTOM_NAME));
-
+                    newSymptom.description = cursor.getString(cursor.getColumnIndex(KEY_SYMPTOM_DESCRIPTION));
                     symptoms.add(newSymptom);
 
                 } while(cursor.moveToNext());

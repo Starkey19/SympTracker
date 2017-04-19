@@ -7,21 +7,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-    <!--<TextView-->
-        <!--android:id="@+id/symptomBody"-->
-        <!--android:background="@drawable/states_selector_list"-->
-        <!--android:layout_width="346dp"-->
-        <!--android:layout_height="49dp"-->
-        <!--android:layout_marginLeft="8dp"-->
-        <!--android:layout_marginTop="8dp"-->
-        <!--android:gravity="center_horizontal"-->
-        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
-        <!--app:layout_constraintLeft_toLeftOf="parent"-->
-        <!--app:layout_constraintTop_toTopOf="parent"-->
-        <!--android:layout_marginRight="8dp"-->
-        <!--app:layout_constraintRight_toRightOf="parent"/>-->
+
     <ImageView
         android:id="@+id/item_icon"
+        android:transitionName="sympItem"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:paddingTop="10dp"
@@ -35,20 +24,6 @@
         android:background="@drawable/states_selector_list"
         android:contentDescription="Icon"
         android:src="@drawable/ic_accessibility" />
-
-    <!--<TextView-->
-        <!--android:id="@+id/lblSymptomName"-->
-        <!--android:layout_width="fill_parent"-->
-        <!--android:layout_height="fill_parent"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_marginBottom="5dp"-->
-        <!--android:layout_marginTop="5dp"-->
-        <!--android:layout_toRightOf="@id/item_icon"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_marginRight="2dp"-->
-        <!--android:background="@drawable/states_selector_list"-->
-        <!--android:gravity="center_horizontal"-->
-        <!--android:textAppearance="?android:attr/textAppearanceListItem"/>-->
 
     <TextView
         android:id="@+id/symptomName"

@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -20,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+
+import static jpstarkey.symptracker.R.id.view;
 
 
 /**
@@ -54,12 +58,11 @@ public class Symptoms extends Fragment implements
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+
      * @return A new instance of fragment Symptoms.
      */
     // TODO: Rename and change types and number of parameters
-    public static Symptoms newInstance(String param1, String param2)
+    public static Symptoms newInstance()
     {
         Symptoms fragment = new Symptoms();
         Bundle args = new Bundle();
@@ -146,11 +149,40 @@ public class Symptoms extends Fragment implements
 
         //Find the listView we want to populate
         lvItems = (ListView) this.getView().findViewById(R.id.sympItems);
-        setUpLongClick();
+
+        //setUpLongClick();   //Context menu
+
+        setUpShortClick(); //View item
+
         //Setup cursor adapter, added getview,getConext here
         cursorAdapter = new SymptomCursorAdapter(this.getView().getContext(), sympCursor);
         //Attach the cursor adapter to the listView
         lvItems.setAdapter(cursorAdapter);
+    }
+
+    public void setUpShortClick()
+    {
+        final FragmentManager fragmentManager = this.getActivity().getSupportFragmentManager();
+
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Log.i("ShortClickSymptom", "ID: " + Long.toString(l));
+                //Start symptom_view fragment and pass bundle with data from db
+                Fragment symptomFrag = new Symptom_view();
+                Bundle args = new Bundle();
+                args.putInt("ID", (int) l);
+                symptomFrag.setArguments(args);
+
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.flContent, symptomFrag)
+                        .commit();
+            }
+        });
     }
 
     public void setUpLongClick()
@@ -202,7 +234,7 @@ public class Symptoms extends Fragment implements
     {
         //Retrieve symptom from cursor using id
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        long itemId = info.id;
+        long itemId = info.position;
         Cursor cursor = (cursorAdapter).getCursor();
         cursor.moveToPosition((int) itemId);
         String prevName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
@@ -251,10 +283,6 @@ public class Symptoms extends Fragment implements
         AlertDialog alert = builder.create();
         alert.show();
 
-
-
-
-
         Log.i("Symptoms", "delete Symptom clicked");
     }
 
@@ -262,18 +290,18 @@ public class Symptoms extends Fragment implements
     {
         //Retrieve symptom from cursor using id
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        long itemId = info.id;
+        long itemId = info.position;
         if (handler != null)
         {
             handler.deleteSymptomById((int) itemId);
-        }
+    }
         else
         {
             Log.d("Symptoms", "db handler is null");
         }
 
         populateSymptoms();
-        //Todo toast
+
     }
 
     @Override

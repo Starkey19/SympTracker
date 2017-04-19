@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity
         Report.OnFragmentInteractionListener,
         Medications.OnFragmentInteractionListener,
         Symptoms.OnFragmentInteractionListener,
+        Symptom_view.OnFragmentInteractionListener,
         AddDialog.OnFragmentInteractionListener,
         EditDialog.OnFragmentInteractionListener,
         AddMedDialog.OnFragmentInteractionListener

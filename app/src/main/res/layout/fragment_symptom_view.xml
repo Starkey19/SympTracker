@@ -1,0 +1,105 @@
+<RelativeLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/symptom_view"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="1dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/item_icon"
+        android:transitionName="sympItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginTop="20dp"
+
+        android:layout_alignParentTop="true"
+        android:background="#eeeeee"
+        android:contentDescription="Icon"
+        android:src="@drawable/ic_accessibility" />
+
+    <TextView
+        android:id="@+id/lblSymptomName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:text="Symptom Name:"
+        android:layout_alignTop="@+id/item_icon"
+        android:layout_toEndOf="@+id/item_icon"/>
+
+    <TextView
+        android:id="@+id/tvSymptomName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="20dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/lblSymptomName"
+        android:layout_toEndOf="@+id/item_icon"/>
+
+    <TextView
+        android:id="@+id/lblSymptomDesc"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/tvSymptomName"
+        android:layout_toEndOf="@+id/item_icon"
+        android:text="Symptom Description:"/>
+
+    <TextView
+        android:id="@+id/tbSymptomDescription"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/lblSymptomDesc"
+        android:layout_toEndOf="@+id/item_icon"/>
+
+    <Button
+        android:id="@+id/btnSymBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/item_icon"
+        android:layout_below="@+id/item_icon"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="10dp"
+        android:background="@drawable/button_custom"
+        android:text="Back"/>
+
+    <Button
+        android:id="@+id/btnSymEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_custom"
+        android:text="Edit"
+        android:layout_alignBaseline="@+id/btnSymDelete"
+        android:layout_alignBottom="@+id/btnSymDelete"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/btnSymDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_custom"
+        android:text="Delete"
+        android:layout_alignBaseline="@+id/btnSymBack"
+        android:layout_alignBottom="@+id/btnSymBack"
+        android:layout_marginRight="10dp"
+        android:layout_alignEnd="@+id/tbSymptomDescription"
+       />
+
+</RelativeLayout>

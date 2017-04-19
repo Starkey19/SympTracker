@@ -137,16 +137,29 @@
             android:textStyle="bold"/>
 
         <Button
-            android:id="@+id/btnSubmitPainLevel"
+            android:id="@+id/btnAddDailySymptoms"
             android:layout_width="147dp"
             android:layout_height="44dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:layout_gravity="center_horizontal"
-            android:background="@color/primary_light"
-            android:text="@string/btnSubmitPainLevel"
+            android:background="@drawable/button_custom"
+            android:text="Submit Daily Log"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
+
+
+        <!--<Button-->
+            <!--android:id="@+id/btnSubmitPainLevel"-->
+            <!--android:layout_width="147dp"-->
+            <!--android:layout_height="44dp"-->
+            <!--android:layout_marginTop="10dp"-->
+            <!--android:layout_marginBottom="10dp"-->
+            <!--android:layout_gravity="center_horizontal"-->
+            <!--android:background="@color/primary_light"-->
+            <!--android:text="@string/btnSubmitPainLevel"-->
+            <!--app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--app:layout_constraintRight_toRightOf="parent"/>-->
 </LinearLayout>
 
     </LinearLayout>
