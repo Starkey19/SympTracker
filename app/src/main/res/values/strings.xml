@@ -15,9 +15,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!--Preferences / settings values-->
-    <string name="title_first_section">First section</string>
-    <string name="title_checkbox_preference">Checkbox section</string>
-    <string name="default_checkbox_preference">Default checkbox</string>
+    <string name="title_first_section">Notification settings</string>
+    <string name="title_checkbox_preference">Enable daily reminder notifications</string>
     <string name="title_edittext_preference">edittext title</string>
     <string name="summary_edittext_preference">edittext summary</string>
     <string name="dialog_title_edittext_preference">edittext dialog title</string>
@@ -36,7 +35,7 @@
     </string-array>
     <string name="title_intent_preference">intent title</string>
     <string name="home_welcome_text">Welcome to SympTracker, Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus scelerisque enim nec ornare. In hac habitasse platea dictumst. Donec eget elit lobortis ex rhoncus egestas fringilla eu est. Aenean volutpat dui nec porttitor elementum. Sed sit amet fermentum dolor. Aenean bibendum consectetur imperdiet.</string>
-    <string name="info_dailyLog">Below you\'ll find the information for your current activity. The total steps you\'ve performed so far today are located on the left side and your input for your current pain level and any symptoms you want to record for today are on the right hand side.</string>
+    <string name="info_dailyLog">Below you\'ll find the information for your current activity. The total steps you\'ve performed so far today, and your input for your current pain level and any symptoms you want to record for today are below.</string>
 
     <!--TITLES-->
     <string name="title_medications">Medications</string>

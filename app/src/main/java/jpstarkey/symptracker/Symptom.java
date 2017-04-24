@@ -8,13 +8,12 @@ package jpstarkey.symptracker;
 
 public class Symptom
 {
-
     int _id;
     String name;
     String description;
     int pain;
 
-    //Constructors
+    //Default empty constructor
     public Symptom()
     {
 
@@ -66,5 +65,4 @@ public class Symptom
     {
         return pain;
     }
-
 }

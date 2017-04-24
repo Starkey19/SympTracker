@@ -20,15 +20,13 @@
         <item name="android:background">?android:attr/listDivider</item>
     </style>
 
-    <!-- Define your custom dialog theme here extending from base -->
+    <!--Custom dialog theme -->
     <style name="AppDialogTheme" parent="Theme.AppCompat.Light.Dialog">
-        <!-- Define color properties as desired -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="android:textColorHighlight">@color/white</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorControlNormal">@color/colorAccent</item>
-        <!-- Define window properties as desired -->
         <item name="android:windowNoTitle">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowBackground">@color/colorPrimaryDark</item>

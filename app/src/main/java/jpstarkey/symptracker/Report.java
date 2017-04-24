@@ -104,7 +104,7 @@ public class Report extends Fragment
         {
         }
 
-        // Fragment screen orientation normal both portait and landscape
+        // Fragment screen orientation landscape
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 

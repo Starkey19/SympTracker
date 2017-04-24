@@ -8,13 +8,13 @@ import static android.R.attr.id;
 
 public class Medication
 {
-
     int _id;
     String name;
     String description;
     int amount;
     int frequency;
 
+    //Default empty constructor
     public Medication()
     {
 

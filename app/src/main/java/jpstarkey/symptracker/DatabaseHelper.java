@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static android.provider.Contacts.SettingsColumns.KEY;
 
 
 /**
@@ -33,27 +34,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
     private static String DB_PATH = "";
 
     //Table names
     private static final String TABLE_SYMPTOMS = "Symptoms";
     private static final String TABLE_MEDICATIONS = "Medications";
     private static final String TABLE_DAILY = "Daily";
-    private static final String TABLE_GOALS = "Goals";
     private static final String TABLE_DAILY_SYMPTOMS = "Daily_Symptoms";
 
     //Daily table columns
     private static final String KEY_DAILY_ID = "_id";
     private static final String KEY_DAILY_PAIN = "daily_pain"; //Overall/average daily pain level? TODO
     private static final String KEY_DAILY_DATE = "date";
-
-    //goals table columns
-    private static final String KEY_GOAL_ID = "_id";
-    private static final String KEY_GOAL_NAME = "name";
-    private static final String KEY_GOAL_DESCRIPTION = "description";
-    private static final String KEY_GOAL_ACCOMPLISH_DATE = "accomplish_date";
-    private static final String KEY_GOAL_ACCOMPLISHED = "accomplished";
 
     //Pain levels table
     private static final String KEY_DAILY_SYMPTOMS_ID = "_id";
@@ -75,15 +68,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 
     //region Database setup methods
-
-    // In any activity just pass the context and use the singleton method:
-    //      PostsDatabaseHelper helper = PostsDatabaseHelper.getInstance(this);
-    //
     public static synchronized DatabaseHelper getInstance(Context context)
     {
         //use the application context which will ensure that you don't
-        //accidentallly leak and Activity's context
-        // See this article for more information: http://bit.ly/6LRzfx
+        //accidentally leak and Activity's context
         if (sInstance == null)
         {
             sInstance = new DatabaseHelper(context.getApplicationContext());
@@ -91,8 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         return sInstance;
     }
 
-    //Constructor should be private to prevent direct instantiation
-    //so instantiation is always handled by "getInstance()" instead
+    //Constructor private so that getInstance must be called
     private DatabaseHelper(Context context)
     {
 
@@ -116,8 +103,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         db.setForeignKeyConstraintsEnabled(true);
     }
 
-    //Called when the daabase is created the FIRST time.
-    //Not called if a database of the same name exists
+    //Called when the database is created for the first time, not if a db of the same name exists
     @Override
     public void onCreate(SQLiteDatabase db)
     {
@@ -145,29 +131,26 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_DAILY_PAIN + " INTEGER " +
                 ")";
 
-        String CREATE_GOALS_TABLE = "CREATE TABLE " + TABLE_GOALS +
-                "(" +
-                    KEY_GOAL_ID + " INTEGER PRIMARY KEY, " +
-                    KEY_GOAL_NAME + " TEXT, " +
-                    KEY_GOAL_DESCRIPTION + " TEXT, " +
-                    KEY_GOAL_ACCOMPLISH_DATE + " TEXT, " +  ///DATE stored as TEXT DD/MM/YYYY
-                    KEY_GOAL_ACCOMPLISHED + " INTEGER" + //Boolean
-                ")";
-
         //Link table for daily log and stored symptoms:
         String CREATE_DAILY_SYMPTOMS_TABLE = "CREATE TABLE " + TABLE_DAILY_SYMPTOMS +
                 "(" +
                     KEY_DAILY_SYMPTOMS_ID + " INTEGER PRIMARY KEY, " +
                     KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK + " INTEGER, " +
                     KEY_DAILY_SYMPTOMS_DAILY_ID_FK + " INTEGER, " +
-                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK +") REFERENCES " + TABLE_SYMPTOMS + "(" + KEY_SYMPTOM_ID + ")" +
-                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_DAILY_ID_FK +") REFERENCES " + TABLE_DAILY + "(" + KEY_DAILY_ID + "))";
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK +") REFERENCES " + TABLE_SYMPTOMS + "(" + KEY_SYMPTOM_ID + ") ON DELETE CASCADE," +
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_DAILY_ID_FK +") REFERENCES " + TABLE_DAILY + "(" + KEY_DAILY_ID + ") ON DELETE CASCADE)";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_MEDICATIONS_TABLE);
         db.execSQL(CREATE_DAILY_TABLE);
-        db.execSQL(CREATE_GOALS_TABLE);
         db.execSQL(CREATE_DAILY_SYMPTOMS_TABLE);
+    }
+
+    //Enabled ON DELETE CASCADE for sqlite
+    @Override
+    public void onOpen(SQLiteDatabase db){
+        super.onOpen(db);
+        db.execSQL("PRAGMA foreign_keys=ON");
     }
 
     //Called when the database needs to be upgraded
@@ -184,7 +167,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_DAILY);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYMPTOMS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEDICATIONS);
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_GOALS);
             onCreate(db);
         }
     }
@@ -309,32 +291,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     }
 
-    public void addGoal(Goal goal)
-    {
-        //create/open the database for writing
-        SQLiteDatabase db = getWritableDatabase();
-
-        //Wrap insert inside a transaction for performance
-        db.beginTransaction();
-        try
-        {
-            ContentValues values = new ContentValues();
-            values.put(KEY_GOAL_NAME, goal.name);
-            values.put(KEY_GOAL_DESCRIPTION, goal.description);
-            values.put(KEY_GOAL_ACCOMPLISH_DATE, goal.accomplishDate);
-            values.put(KEY_GOAL_ACCOMPLISHED, goal.accomplished);
-
-            db.insertOrThrow(TABLE_GOALS, null, values);
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            Log.d(TAG, "Error while trying to add Goal to database");
-        } finally
-        {
-            db.endTransaction();
-        }
-    }
-
-    //public void addPainLevel
 
     public void copyDB() throws IOException
     {
@@ -430,6 +386,40 @@ public class DatabaseHelper extends SQLiteOpenHelper
         }
 
         return newSymptom;
+    }
+
+    public Medication getMedicationById(int medicationId)
+    {
+        Medication newMedication = new Medication();
+
+        String MEDICATION_1_SELECT_QUERY =
+                String.format("SELECT * FROM %s WHERE %s = %s",
+                        TABLE_MEDICATIONS,
+                        KEY_MEDICATION_ID,
+                        medicationId);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(MEDICATION_1_SELECT_QUERY, null);
+        try
+        {
+            if (cursor.moveToFirst())
+            {
+                newMedication.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_MEDICATION_ID)));
+                newMedication.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEDICATION_NAME)));
+                newMedication.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEDICATION_DESCRIPTION)));
+                newMedication.setAmount(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_MEDICATION_AMOUNT)));
+                newMedication.setFrequency(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_MEDICATION_FREQUENCY)));
+            }
+        } catch (Exception e)
+        {
+            Log.d(TAG, "Error trying to get medication with id " + medicationId + " from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()){
+                cursor.close();
+            }
+        }
+
+        return newMedication;
     }
 
     public List<DailyLog> getAllDailyLogs() {
@@ -550,6 +540,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
         values.put(KEY_SYMPTOM_PAIN, newSymptom.getPain());
 
         return db.update(TABLE_SYMPTOMS, values, KEY_SYMPTOM_ID + " = " + Integer.toString(id), null);
+    }
+
+    public int updateMedicationById(int id, Medication newMedication)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_MEDICATION_NAME, newMedication.getName());
+        values.put(KEY_MEDICATION_DESCRIPTION, newMedication.getDescription());
+        values.put(KEY_MEDICATION_AMOUNT, newMedication.getAmount());
+        values.put(KEY_MEDICATION_FREQUENCY, newMedication.getFrequency());
+
+        return db.update(TABLE_MEDICATIONS, values, KEY_MEDICATION_ID + " = " + Integer.toString(id), null);
     }
     //endregion
 

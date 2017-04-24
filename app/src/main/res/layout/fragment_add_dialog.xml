@@ -12,7 +12,6 @@
         android:layout_marginTop="15dp"
         android:background="@color/divider"/>
 
-
     <TextView
         android:id="@+id/lbl_symptom_name"
         android:layout_width="match_parent"

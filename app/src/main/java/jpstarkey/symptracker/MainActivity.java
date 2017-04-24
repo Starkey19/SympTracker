@@ -6,7 +6,9 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
@@ -20,14 +22,19 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v4.os.ResultReceiver;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.preference.PreferenceManager;
+import android.support.v7.preference.PreferenceManagerFix;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -108,7 +115,9 @@ public class MainActivity extends AppCompatActivity
         Symptom_view.OnFragmentInteractionListener,
         AddDialog.OnFragmentInteractionListener,
         EditDialog.OnFragmentInteractionListener,
-        AddMedDialog.OnFragmentInteractionListener
+        AddMedDialog.OnFragmentInteractionListener,
+        EditMedDialog.OnFragmentInteractionListener,
+        Medication_view.OnFragmentInteractionListener
 {
 
     //Navigation drawer
@@ -122,9 +131,9 @@ public class MainActivity extends AppCompatActivity
 
     private PendingIntent pendingIntent;
 
-     /**Google fitness API
- *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
- **/
+     /** Google fitness API
+      *  https://github.com/googlesamples/android-fit/blob/master/BasicHistoryApi/
+      **/
     public static final String TAG = "BasicHistoryApi";
     private static final String AUTH_PENDING = "auth_state_pending";
     private static boolean authInProgress = false;
@@ -151,9 +160,19 @@ public class MainActivity extends AppCompatActivity
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         setupDrawerContent(nvDrawer);
 
-        //Set the home page on first load
-        MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
-        selectDrawerItem(homeItem);
+        //Set the page on first load - this could depend on whether the app is being
+        //loaded from the daily notification or not
+        String menuFragment = getIntent().getStringExtra("menuFragment");
+        if (menuFragment != null)
+        {
+            MenuItem dailyItem = nvDrawer.getMenu().findItem(R.id.nav_daily_fragment);
+            selectDrawerItem(dailyItem);
+        }
+        else
+        {
+            MenuItem homeItem = nvDrawer.getMenu().findItem(R.id.nav_home_fragment);
+            selectDrawerItem(homeItem);
+        }
 
         //Google fitness API Auth:
         if(savedInstanceState != null)
@@ -161,26 +180,20 @@ public class MainActivity extends AppCompatActivity
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
 
-        //Initialize and build the google fit API client
-        buildFitnessClient();
+        //Display an ethics consent dialog, if accepted connect to google fit
+        displayEthicsDialog();
+
 
         //Store the application context
         this.mContext = getApplicationContext();
 
-        //Store the Fitness Client in the applicationContext for use in other fragments
-        if (mClient != null)
-        {
-            GlobalState state = ((GlobalState) getApplicationContext());
-            state.setMClient(mClient);
-
-        }
-
-        //createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
-
-        Intent alarmIntent = new Intent(MainActivity.this, myAlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, alarmIntent, 0);
 
 
+       // createNotification(0, R.drawable.ic_accessibility, "Test", "Test body");
+
+
+//        Intent alarmIntent = new Intent(MainActivity.this, myAlarmReceiver.class);
+//        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, alarmIntent, 0);
     }
 
     //region Google Fit API
@@ -194,7 +207,7 @@ public class MainActivity extends AppCompatActivity
      *  having multiple accounts on the device and needing to specify which account to use, etc.
      */
     private void buildFitnessClient() {
-        // Create the Google API Client
+        //Creates the Google API Client
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
@@ -203,17 +216,21 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onConnected(Bundle bundle) {
                                 Log.i(TAG, "Connected!!!");
-                                GlobalState state = ((GlobalState) getApplicationContext());
-                                state.setDailySteps();
-                                //Update the currentTotalSteps on the homepage
-                                currentTotalSteps = (TextView) findViewById(R.id.tvTotalSteps);
-                                if (currentTotalSteps != null)
+                                //Store the Fitness Client in the applicationContext for use in other fragments
+                                if (mClient != null)
                                 {
-                                    currentTotalSteps.setText(Float.toString(state.getDailySteps()));
+                                    GlobalState state = ((GlobalState) getApplicationContext());
+                                    state.setMClient(mClient);
+                                    state.setDailySteps();
 
+                                    //Update the currentTotalSteps on the daily report page
+                                    currentTotalSteps = (TextView) findViewById(R.id.tvTotalSteps);
+                                    if (currentTotalSteps != null)
+                                    {
+                                        currentTotalSteps.setText(Float.toString(state.getDailySteps()));
+                                    }
                                 }
                             }
-
                             @Override
                             public void onConnectionSuspended(int i) {
                                 // If your connection to the sensor gets lost at some point,
@@ -241,134 +258,12 @@ public class MainActivity extends AppCompatActivity
                 .build();
     }
 
-    //Just gets the daily total steps for current  day (could be used on homeScreen TODO)
-    public float getDailySteps()
-    {
-        if (mClient.isConnected())
-        {
-            Fitness.HistoryApi.readDailyTotal(mClient, TYPE_STEP_COUNT_DELTA)
-                    .setResultCallback(new ResultCallback<DailyTotalResult>()
-                    {
-                        @Override
-                        public void onResult(@NonNull DailyTotalResult totalResult)
-                        {
-                            if (totalResult.getStatus().isSuccess())
-                            {
-                                DataSet totalSet = totalResult.getTotal();
-                                long total = (totalSet == null) || totalSet.isEmpty()
-                                        ? 0
-                                        : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
-                                scaledStepCount = total; /// 100;
-                                String strStepCount = String.valueOf(scaledStepCount);
-                                Log.i(TAG, "Scaled Step count:" + strStepCount);
-                            }
-                            else
-                            {
-
-                            }
-                        }
-
-                    });
-           // return scaledStepCount;
-        } else if (!mClient.isConnecting())
-        {
-            mClient.connect();
-        }
-
-        return scaledStepCount;
-    }
-
-    public int getStepsCount(long startTime, long endTime) {
-        DataSource ESTIMATED_STEP_DELTAS = new DataSource.Builder()
-                .setDataType(TYPE_STEP_COUNT_DELTA)
-                .setType(DataSource.TYPE_DERIVED)
-                .setStreamName("estimated_steps")
-                .setAppPackageName("com.google.android.gms").build();
-
-
-        PendingResult<DataReadResult> pendingResult = Fitness.HistoryApi
-                .readData(
-                        mClient,
-                        new DataReadRequest.Builder()
-                                .aggregate(TYPE_STEP_COUNT_DELTA,
-                                        DataType.AGGREGATE_STEP_COUNT_DELTA)
-                                .bucketByTime(1, TimeUnit.DAYS)
-                                .setTimeRange(startTime, endTime,
-                                        TimeUnit.MILLISECONDS).build());
-        int steps = 0;
-        DataReadResult dataReadResult = pendingResult.await();
-        if (dataReadResult.getBuckets().size() > 0) {
-            //Log.e("TAG", "Number of returned buckets of DataSets is: "
-            //+ dataReadResult.getBuckets().size());
-            for (Bucket bucket : dataReadResult.getBuckets()) {
-                List<DataSet> dataSets = bucket.getDataSets();
-                for (DataSet dataSet : dataSets) {
-                    for (com.google.android.gms.fitness.data.DataPoint dp : dataSet.getDataPoints()) {
-                        for (Field field : dp.getDataType().getFields()) {
-                            steps += dp.getValue(field).asInt();
-                        }
-                    }
-                }
-            }
-        } else if (dataReadResult.getDataSets().size() > 0) {
-            for (DataSet dataSet : dataReadResult.getDataSets()) {
-                for (com.google.android.gms.fitness.data.DataPoint dp : dataSet.getDataPoints()) {
-                    for (Field field : dp.getDataType().getFields()) {
-                        steps += dp.getValue(field).asInt();
-                    }
-                }
-            }
-        }
-        return steps;
-
-//region old
-        //        DataSource ESTIMATED_STEP_DELTAS = new DataSource.Builder()
-//                .setDataType(TYPE_STEP_COUNT_DELTA)
-//                .setType(DataSource.TYPE_DERIVED)
-//                .setStreamName("estimated_steps")
-//                .setAppPackageName("com.google.android.gms").build();
-//        PendingResult<DataReadResult> pendingResult = Fitness.HistoryApi
-//                .readData(
-//                        mClient,
-//                        new DataReadRequest.Builder()
-//                                .aggregate(TYPE_STEP_COUNT_DELTA,
-//                                        DataType.AGGREGATE_STEP_COUNT_DELTA)
-//                                .bucketByTime(1, TimeUnit.DAYS)
-//                                .setTimeRange(startTime, endTime,
-//                                        TimeUnit.MILLISECONDS).build());
-//        int steps = 0;
-//        DataReadResult dataReadResult = pendingResult.await();
-//        if (dataReadResult.getBuckets().size() > 0) {
-//            //Log.e("TAG", "Number of returned buckets of DataSets is: "
-//            //+ dataReadResult.getBuckets().size());
-//            for (Bucket bucket : dataReadResult.getBuckets()) {
-//                List<DataSet> dataSets = bucket.getDataSets();
-//                for (DataSet dataSet : dataSets) {
-//                    for (com.google.android.gms.fitness.data.DataPoint dp : dataSet.getDataPoints()) {
-//                        for (Field field : dp.getDataType().getFields()) {
-//                            steps += dp.getValue(field).asInt();
-//                        }
-//                    }
-//                }
-//            }
-//        } else if (dataReadResult.getDataSets().size() > 0) {
-//            for (DataSet dataSet : dataReadResult.getDataSets()) {
-//                for (com.google.android.gms.fitness.data.DataPoint dp : dataSet.getDataPoints()) {
-//                    for (Field field : dp.getDataType().getFields()) {
-//                        steps += dp.getValue(field).asInt();
-//                    }
-//                }
-//            }
-//        }
-//        return steps;
-        //endregion
-    }
     //endregion
 
     @Override
     public void theMethod()
     {
-        scheduleAlarm();
+        //scheduleAlarm();
     }
 
     //Background task to return the weekly number of steps for the connected google account,
@@ -409,10 +304,10 @@ public class MainActivity extends AppCompatActivity
                 C.add(Calendar.DAY_OF_WEEK, -1);
                 start = C.getTimeInMillis();
 
-                days.put(end, getStepsCount(start,end));
+                days.put(end, getStepsCount(start, end));
                 end = start;
             }
-
+            //Debug purposes
             for (Map.Entry<Long, Integer> entry : days.entrySet())
             {
                 Log.i("DoInBackground", "Date: " + entry.getKey() + " Steps: " + entry.getValue());
@@ -460,8 +355,6 @@ public class MainActivity extends AppCompatActivity
             int steps = 0;
             DataReadResult dataReadResult = pendingResult.await();
             if (dataReadResult.getBuckets().size() > 0) {
-                //Log.e("TAG", "Number of returned buckets of DataSets is: "
-                //+ dataReadResult.getBuckets().size());
                 for (Bucket bucket : dataReadResult.getBuckets()) {
                     List<DataSet> dataSets = bucket.getDataSets();
                     for (DataSet dataSet : dataSets) {
@@ -501,7 +394,8 @@ public class MainActivity extends AppCompatActivity
             entries1.add(new BarEntry(dValue, result.get(key)));
         }
         BarDataSet set1 = new BarDataSet(entries1, "Steps");
-        set1.setColor(Color.rgb(60, 220, 78));
+        //set1.setColor(Color.rgb(60, 220, 78));
+        set1.setColor(Color.rgb(255, 152, 0));
         set1.setValueTextColor(Color.rgb(60, 220, 78));
         set1.setValueTextSize(10f);
         set1.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -557,8 +451,6 @@ public class MainActivity extends AppCompatActivity
         int month = C.get(Calendar.MONTH) + 1; //index of month starts at 0
         int year = C.get(Calendar.YEAR);
 
-
-
         if(mContext != null)
         {
             DatabaseHelper db = DatabaseHelper.getInstance(mContext);
@@ -568,13 +460,7 @@ public class MainActivity extends AppCompatActivity
             //List<DailyLog> debug = db.getAllDailyLogs();
             //Log.i("TAG", Integer.toString(debug.size()));
         }
-
-
-
         //Insert daily log into DB
-
-
-
         Log.i("PAINLEVEL", "painlevel = " + Integer.toString(painLevel));
         return painLevel;
     }
@@ -634,6 +520,12 @@ public class MainActivity extends AppCompatActivity
     //navigation drawer.
     public void selectDrawerItem(MenuItem menuItem)
     {
+        boolean gfit_consent = false;
+        SharedPreferences preferencesCompat = PreferenceManager.getDefaultSharedPreferences(this);
+        if (preferencesCompat.getBoolean("gfit_consent", true) == true)
+        {
+            gfit_consent = true;
+        }
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Fragment fragment = null;
         Class fragmentClass;
@@ -642,16 +534,27 @@ public class MainActivity extends AppCompatActivity
                 fragmentClass = Home.class;
                 break;
             case R.id.nav_daily_fragment:
-                fragmentClass = Daily.class;
+                if (gfit_consent)
+                {
+                    fragmentClass = Daily.class;
+                }
+                else
+                {
+                    fragmentClass = Home.class;
+                }
                 break;
             case R.id.nav_report_fragment:
-                fragmentClass = Report.class;
+                if (gfit_consent)
+                {
+                    fragmentClass = Report.class;
+                }
+                else
+                {
+                    fragmentClass = Home.class;
+                }
                 break;
             case R.id.nav_symptoms_fragment:
                 fragmentClass = Symptoms.class;
-                break;
-            case R.id.nav_activities_fragment:
-                fragmentClass = Daily.class; //TODO
                 break;
             case R.id.nav_settings_fragment:
                 fragmentClass = SettingsFragment.class;
@@ -671,7 +574,6 @@ public class MainActivity extends AppCompatActivity
             Log.e("Fragment", "Fragment is null in navigation drawer");
         }
 
-       // if (fragmentClass.getSuperclass() == PreferenceFragment.())
         try {
             fragment = (Fragment) fragmentClass.newInstance();
         } catch (Exception e) {
@@ -691,94 +593,77 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
+    public void displayEthicsDialog()
+    {
+
+
+        final SharedPreferences preferencesCompat = PreferenceManager.getDefaultSharedPreferences(this);
+
+        //If consent hasn't been given before.. show ethics consent dialog
+        Log.i("gfit consent", "" + preferencesCompat.getBoolean("gfit_consent", false));
+
+        if (preferencesCompat.getBoolean("gfit_consent", false) == false)
+        {
+
+            //Display an alertDialog with ethics consent message:
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Consent");
+            builder.setMessage("SympTracker would like to access data regarding your physical activity " +
+                    "from Google Fit. This data will not be stored within the app and will not be released " +
+                    "to third party organisations." +
+                    " Do you agree to these terms and give informed consent" +
+                    " for SympTracker to access this information?");
+
+            builder.setPositiveButton("Accept", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int i)
+                {
+                    //User accepted, set consent to true in settings so we don't show this dialog again
+                    SharedPreferences.Editor editor = preferencesCompat.edit();
+                    editor.putBoolean("gfit_consent", true);
+                    editor.apply();
+
+                    Toast.makeText(getApplicationContext(), "Consent accepted.", Toast.LENGTH_SHORT).show();
+
+                    //Initialize and build the google fit API client
+                    buildFitnessClient();
+                    dialog.dismiss();
+                }
+            });
+
+            builder.setNegativeButton("Deny", new DialogInterface.OnClickListener()
+            {
+
+                @Override
+                public void onClick(DialogInterface dialog, int i)
+                {
+                    //User denied, set consent to false in settings
+                    SharedPreferences.Editor editor = preferencesCompat.edit();
+                    editor.putBoolean("gfit_consent", false);
+                    editor.apply();
+                    //Close the application as user did not accept.
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+        else
+        {
+            //Consent has previously been given, so build fitness client
+            //Initialize and build the google fit API client
+            buildFitnessClient();
+        }
+    }
+
     //For fragment interaction:
     @Override
     public void onFragmentInteraction(Uri uri)
     {
 
     }
-
-    //region Background service
-    public void start()
-    {
-
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        int interval = 8000;
-
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-        Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-    }
-
-    public void cancel() {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        manager.cancel(pendingIntent);
-        Toast.makeText(this, "Alarm Canceled", Toast.LENGTH_SHORT).show();
-    }
-
-    public void startAt10() {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        int interval = 1000 * 60 * 20;
-
-        /* Set the alarm to start at 10:30 AM */
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 18);
-        calendar.set(Calendar.MINUTE, 30);
-
-        /* Repeating on every 20 minutes interval */
-        manager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                1000 * 60 * 20, pendingIntent);
-    }
-
-    //Sets a recurring alarm every half hour
-    public void scheduleAlarm()
-    {
-        //Intent to execute the AlarmReceiver
-        Intent intent = new Intent(getApplicationContext(), myAlarmReceiver.class);
-        //Create a pendingIntent to be triggered when the alarm goes off
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this, myAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        //Setup periodic alarm every 5 seconds
-        long firstMillis = System.currentTimeMillis();
-
-        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis,
-                AlarmManager.INTERVAL_FIFTEEN_MINUTES, pIntent);
-    }
-
-    public void cancelAlarm()
-    {
-        Intent intent = new Intent(getApplicationContext(), myAlarmReceiver.class);
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this, myAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarm.cancel(pIntent);
-    }
-    //endregion
-
-    //region Notifications
-    private void createNotification(int nId, int iconRes, String title, String body) {
-
-        Intent intent = new Intent(this, Daily.class);
-        int requestID = (int) System.currentTimeMillis();
-        int flags = PendingIntent.FLAG_CANCEL_CURRENT;
-        PendingIntent pIntent = PendingIntent.getActivity(this, requestID, intent, flags);
-
-        Notification noti = new NotificationCompat.Builder(this)
-                .setSmallIcon(iconRes)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setContentIntent(pIntent)
-                .setAutoCancel(true) //Hides notification after selected
-                .build();
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(nId, noti);
-    }
-    //endregion
 
     //Seperate class to format the X-axis on the graph so that appropriate dates are shown
     //Otherwise labels are useless to user

@@ -5,34 +5,23 @@
         android:title="@string/title_first_section">
 
         <CheckBoxPreference
-            android:key="checkbox_preference"
+            android:key="daily_reminder"
             android:title="@string/title_checkbox_preference"
-            android:defaultValue="@string/default_checkbox_preference"/>
+            android:defaultValue="true"/>
 
-        <EditTextPreference
-            android:key="edittext_preference"
-            android:title="@string/title_edittext_preference"
-            android:summary="@string/summary_edittext_preference"
-            android:dialogTitle="@string/dialog_title_edittext_preference"
-            android:dependency="checkbox_preference" />
+        <!--Date time?-->
+
 
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/title_second_section">
+        android:title="Google Fit access">
 
-        <ListPreference
-            android:key="list_preference"
-            android:title="@string/title_list_preference"
-            android:dialogTitle="@string/dialog_title_list_preference"
-            android:entries="@array/entries_list_preference"
-            android:entryValues="@array/entryvalues_list_preference" />
-
-        <Preference
-            android:title="@string/title_intent_preference">
-            <intent android:action="android.intent.action.VIEW"
-                    android:data="http://codepath.com/" />
-        </Preference>
+        <CheckBoxPreference
+            android:key="gfit_consent"
+            android:title="Consent to Google fit activity data retrieval."
+            android:defaultValue="false"/>
 
     </PreferenceCategory>
+
 </PreferenceScreen>

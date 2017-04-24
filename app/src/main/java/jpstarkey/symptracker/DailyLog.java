@@ -10,6 +10,7 @@ public class DailyLog
     String date;
     int pain;
 
+    //Default empty constructor
     public DailyLog()
     {
 

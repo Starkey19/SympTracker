@@ -19,38 +19,48 @@ import android.widget.TextView;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link EditDialog.OnFragmentInteractionListener} interface
+ * {@link EditMedDialog.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link EditDialog#newInstance} factory method to
+ * Use the {@link EditMedDialog#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class EditDialog extends DialogFragment implements TextView.OnEditorActionListener
+public class EditMedDialog extends DialogFragment implements TextView.OnEditorActionListener
 {
-    private EditText mSymptomName;
-    private EditText mSymptomDescription;
+    private EditText mMedicationName;
+    private EditText mMedicationDesc;
+    private EditText mMedicationAmount;
+    private EditText mMedicationFreq;
 
-    private Symptom mSymptomToEdit;
+    private Medication mMedicationToEdit;
 
     private OnFragmentInteractionListener mListener;
 
-    public EditDialog()
+    public EditMedDialog()
     {
         // Required empty public constructor
     }
 
-    public interface EditDialogListener
+    public interface EditMedDialogListener
     {
-        void onFinishEditDialog(long id, String inputName, String inputDesc);
+        void onFinishEditMedDialog(long id, String inputName, String inputDesc, int inputAmount, int inputFrequency);
     }
 
-    public static EditDialog newInstance(String title, long id, Symptom symptomToEdit)
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     * @return A new instance of fragment EditMedDialog.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static EditMedDialog newInstance(String title, long id, Medication medicationToEdit)
     {
-        EditDialog fragment = new EditDialog();
+        EditMedDialog fragment = new EditMedDialog();
         Bundle args = new Bundle();
         args.putString("title", title);
         args.putLong("itemId", id);
-        args.putString("name", symptomToEdit.getName());
-        args.putString("description", symptomToEdit.getDescription());
+        args.putString("name", medicationToEdit.getName());
+        args.putString("description", medicationToEdit.getDescription());
+        args.putInt("amount", medicationToEdit.getAmount());
+        args.putInt("frequency", medicationToEdit.getFrequency());
         fragment.setArguments(args);
         return fragment;
     }
@@ -70,9 +80,12 @@ public class EditDialog extends DialogFragment implements TextView.OnEditorActio
     //Send data back to parent fragment instead of activity
     public void sendBackResult()
     {
-        EditDialogListener listener = (EditDialogListener) getTargetFragment();
+        EditMedDialogListener listener = (EditMedDialogListener) getTargetFragment();
         long id = getArguments().getLong("itemId");
-        listener.onFinishEditDialog(id, mSymptomName.getText().toString(), mSymptomDescription.getText().toString());
+        listener.onFinishEditMedDialog(id, mMedicationName.getText().toString(),
+                mMedicationDesc.getText().toString(),
+                Integer.getInteger(mMedicationAmount.getText().toString()),
+                Integer.getInteger(mMedicationFreq.getText().toString()));
         dismiss();
     }
 
@@ -80,21 +93,28 @@ public class EditDialog extends DialogFragment implements TextView.OnEditorActio
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // Get fields from view
-        mSymptomName = (EditText) view.findViewById(R.id.txt_edit_symptom_name);
-        mSymptomDescription = (EditText) view.findViewById(R.id.txt_edit_symptom_description);
+        mMedicationName = (EditText) view.findViewById(R.id.txt_edit_medication_name);
+        mMedicationDesc = (EditText) view.findViewById(R.id.txt_edit_medication_description);
+        mMedicationAmount = (EditText) view.findViewById(R.id.txt_edit_medication_amount);
+        mMedicationFreq = (EditText) view.findViewById(R.id.txt_medication_edit_frequency);
+
 
         //Set editText name and desc from the selected symptom:
-        mSymptomName.setText(getArguments().getString("name"));
-        mSymptomDescription.setText(getArguments().getString("description"));
+        mMedicationName.setText(getArguments().getString("name"));
+        mMedicationDesc.setText(getArguments().getString("description"));
+        mMedicationAmount.setText(Integer.toString(getArguments().getInt("amount")));
+        mMedicationFreq.setText(Integer.toString(getArguments().getInt("frequency")));
 
         // Fetch arguments from bundle and set title
         String title = getArguments().getString("title", "Enter Name");
         getDialog().setTitle(title);
         // Show soft keyboard automatically and request focus to field
-        mSymptomName.requestFocus();
+        mMedicationName.requestFocus();
         //Setup a callback when the done button is pressed on keyboard
-        mSymptomName.setOnEditorActionListener(this);
-        mSymptomDescription.setOnEditorActionListener(this);
+        mMedicationName.setOnEditorActionListener(this);
+        mMedicationDesc.setOnEditorActionListener(this);
+        mMedicationAmount.setOnEditorActionListener(this);
+        mMedicationFreq.setOnEditorActionListener(this);
 
         getDialog().getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
@@ -115,7 +135,7 @@ public class EditDialog extends DialogFragment implements TextView.OnEditorActio
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_edit_dialog, container, false);
+        return inflater.inflate(R.layout.fragment_edit_med_dialog, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -147,7 +167,6 @@ public class EditDialog extends DialogFragment implements TextView.OnEditorActio
         super.onDetach();
         mListener = null;
     }
-
 
     /**
      * This interface must be implemented by activities that contain this

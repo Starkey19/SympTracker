@@ -15,7 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,8 +49,8 @@ public class Daily extends Fragment
     private TextView currentDate;
     private SeekBar seekPainLevel;
     private TextView tvPainLevel;
-    private Button submitPainLevel;
     private Button btnAddDailySymptoms;
+    private EditText etDailyNotes;
 
     private ArrayList mSelectedSymptoms;
 
@@ -94,15 +96,37 @@ public class Daily extends Fragment
         currentTotalSteps = (TextView) view.findViewById(R.id.tvTotalSteps);
         currentDate = (TextView) view.findViewById(R.id.tvCurrentDate);
         tvPainLevel = (TextView) view.findViewById(R.id.tvPainLevel);
-        //submitPainLevel = (Button) view.findViewById(R.id.btnSubmitPainLevel);
         btnAddDailySymptoms = (Button) view.findViewById(R.id.btnAddDailySymptoms);
+        etDailyNotes = (EditText) view.findViewById(R.id.etDailyNotes);
+        etDailyNotes.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                etDailyNotes.requestFocus();
+            }
+        });
+
+        etDailyNotes.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus)
+            {
+                if (hasFocus)
+                {
+                    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                }
+                else
+                {
+                    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+
 
         seekPainLevel = (SeekBar) view.findViewById(R.id.seekPainLevel);
-
         //Initialize tvPainLevel
         tvPainLevel.setText(seekPainLevel.getProgress() + "/" + seekPainLevel.getMax());
-
-
         //Listener for the seekBar pain level
         seekPainLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
@@ -127,26 +151,6 @@ public class Daily extends Fragment
                 tvPainLevel.setText(progress + "/" + seekBar.getMax());
             }
         });
-
-        //Button submit pain level for current day
-//        submitPainLevel.setOnClickListener(new View.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View view)
-//            {
-//                DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
-//
-//                //Dates are stored as DD/MM/YYYY in DB so need to format to this first
-//                Date cDate = new Date(); //Current date
-//                String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
-//
-//                //Insert daily log into DB
-//                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
-//
-//                db.addDailyLog(dailyLog);
-//                Toast.makeText(view.getContext(), "Pain level submitted for " + sDate, Toast.LENGTH_SHORT).show();
-//            }
-//        });
 
         //Button to raise dialog to add symptoms for a daily log
         btnAddDailySymptoms.setOnClickListener(new View.OnClickListener()
@@ -180,7 +184,6 @@ public class Daily extends Fragment
         DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
         final List<Symptom> symptoms = db.getAllSymptoms();
         final List<Symptom> selectedSymptoms = new ArrayList<>();
-
         List<String> symptomNames = new ArrayList<>();
 
         for (Symptom symptom: symptoms)
@@ -202,7 +205,6 @@ public class Daily extends Fragment
                 {
                     mSelectedSymptoms.add(indexSelected);
                     selectedSymptoms.add(symptoms.get(indexSelected));
-
                 }
                 else if (mSelectedSymptoms.contains(indexSelected))
                 {
@@ -218,19 +220,14 @@ public class Daily extends Fragment
             {
                 //User is finished adding symptoms
                 //Update dailyLog in DB with added symptoms
-
                 DatabaseHelper db = DatabaseHelper.getInstance(getActivity());
-
                 //Dates are stored as DD/MM/YYYY in DB so need to format to this first
                 Date cDate = new Date(); //Current date
                 String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
-
                 //Insert daily log into DB
                 DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
-
                 db.addDailyLogWithSymptoms(dailyLog, selectedSymptoms);
                 createToast("Pain level and symptoms submitted for " + sDate);
-
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener()
         {

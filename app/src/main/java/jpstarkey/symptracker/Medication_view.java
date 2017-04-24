@@ -2,7 +2,6 @@ package jpstarkey.symptracker;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,49 +9,62 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static android.R.attr.value;
-import static jpstarkey.symptracker.R.id.view;
+import static jpstarkey.symptracker.R.id.btnMedBack;
+import static jpstarkey.symptracker.R.id.btnSymBack;
+import static jpstarkey.symptracker.R.id.btnSymDelete;
+import static jpstarkey.symptracker.R.id.btnSymEdit;
+import static jpstarkey.symptracker.R.id.tbSymptomDescription;
+import static jpstarkey.symptracker.R.id.tvSymptomName;
+
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link Symptom_view.OnFragmentInteractionListener} interface
+ * {@link Medication_view.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link Symptom_view#newInstance} factory method to
+ * Use the {@link Medication_view#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Symptom_view extends Fragment implements
-        EditDialog.EditDialogListener,
-        EditDialog.OnFragmentInteractionListener
+public class Medication_view extends Fragment implements
+        EditMedDialog.EditMedDialogListener,
+        EditMedDialog.OnFragmentInteractionListener
+
 {
 
 
     private OnFragmentInteractionListener mListener;
-    private Button btnSymBack;
-    private Button btnSymEdit;
-    private Button btnSymDelete;
-    private TextView tvSymptomName;
-    private TextView tbSymptomDescription;
-    private Symptom mSymptom;
+    private Button btnMedBack;
+    private Button btnMedEdit;
+    private Button btnMedDelete;
+    private TextView tvMedicationName;
+    private TextView tvMedicationDescription;
+    private TextView tvMedicationAmount;
+    private TextView tvMedicationFrequency;
+    private Medication mMedication;
     private DatabaseHelper db;
 
-    public Symptom_view()
+    public Medication_view()
     {
         // Required empty public constructor
     }
 
-    public static Symptom_view newInstance()
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     * @return A new instance of fragment Medication_view.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static Medication_view newInstance()
     {
-        Symptom_view fragment = new Symptom_view();
+        Medication_view fragment = new Medication_view();
         Bundle args = new Bundle();
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -63,7 +75,7 @@ public class Symptom_view extends Fragment implements
         super.onCreate(savedInstanceState);
         if (getArguments() != null)
         {
-            Log.i("TAG", "args are null");
+
         }
     }
 
@@ -72,94 +84,97 @@ public class Symptom_view extends Fragment implements
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_symptom_view, container, false);
+        View view = inflater.inflate(R.layout.fragment_medication_view, container, false);
 
-        btnSymBack = (Button) view.findViewById(R.id.btnSymBack);
-        btnSymEdit = (Button) view.findViewById(R.id.btnSymEdit);
-        btnSymDelete = (Button) view.findViewById(R.id.btnSymDelete);
+        btnMedBack = (Button) view.findViewById(R.id.btnMedBack);
+        btnMedEdit = (Button) view.findViewById(R.id.btnMedEdit);
+        btnMedDelete = (Button) view.findViewById(R.id.btnMedDelete);
 
-        tvSymptomName = (TextView) view.findViewById(R.id.tvSymptomName);
-        tbSymptomDescription = (TextView) view.findViewById(R.id.tbSymptomDescription);
+        tvMedicationName = (TextView) view.findViewById(R.id.tvMedicationName);
+        tvMedicationDescription = (TextView) view.findViewById(R.id.tvMedicationDescription);
+        tvMedicationAmount = (TextView) view.findViewById(R.id.tvMedicationAmount);
+        tvMedicationFrequency = (TextView) view.findViewById(R.id.tvMedicationFrequency);
 
         db = DatabaseHelper.getInstance(this.getContext());
 
         //Edit button
-        btnSymEdit.setOnClickListener(new View.OnClickListener()
+        btnMedEdit.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                editSymptom();
+                editMedication();
             }
         });
 
         //Back button
-        btnSymBack.setOnClickListener(new View.OnClickListener()
+        btnMedBack.setOnClickListener(new View.OnClickListener()
         {
 
             @Override
             public void onClick(View view)
             {
-                goBackToSymptoms();
+                goBackToMedications();
 
             }
         });
 
         //Delete button
-        btnSymDelete.setOnClickListener(new View.OnClickListener()
+        btnMedDelete.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                deleteSymptom();
+                deleteMedication();
             }
         });
 
-
-        getSymptomDetails(getArguments().getInt("ID"));
+        getMedicationDetails(getArguments().getInt("ID"));
 
         return view;
     }
 
-    public void goBackToSymptoms()
+    public void goBackToMedications()
     {
         FragmentManager fragmentManager = getFragmentManager();
-        Fragment fSymptoms = new Symptoms();
+        Fragment fMedications = new Medications();
 
         fragmentManager
                 .beginTransaction()
-                .replace(R.id.flContent, fSymptoms)
+                .replace(R.id.flContent, fMedications)
                 .commit();
     }
 
-    public void getSymptomDetails(int symptomId)
+    public void getMedicationDetails(int medicationId)
     {
         if(db == null)
         {
             db = DatabaseHelper.getInstance(this.getContext());
         }
 
-        mSymptom = db.getSymptomById(symptomId);;
-        tvSymptomName.setText(mSymptom.getName());
-        tbSymptomDescription.setText(mSymptom.getDescription());
+        mMedication = db.getMedicationById(medicationId);;
+        tvMedicationName.setText(mMedication.getName());
+        tvMedicationDescription.setText(mMedication.getDescription());
+        tvMedicationAmount.setText(String.valueOf(mMedication.getAmount()));
+        tvMedicationFrequency.setText(String.valueOf(mMedication.getFrequency()));
     }
 
-    public void editSymptom()
+    public void editMedication()
     {
-        if (mSymptom != null)
+        if (mMedication != null)
         {
             FragmentManager fm = getFragmentManager();
-            EditDialog editDialog = EditDialog.newInstance("Edit Symptom", mSymptom._id, mSymptom);
-            editDialog.setTargetFragment(Symptom_view.this, 300);
-            editDialog.show(fm, "edit_symptom");
+            EditMedDialog editMedDialog = EditMedDialog.newInstance("Edit medication", mMedication._id, mMedication);
+            editMedDialog.setTargetFragment(Medication_view.this, 300);
+            editMedDialog.show(fm, "edit_medication");
 
-            Log.i("Symptoms", "edit Symptom clicked");
+            Log.i("Medications", "edit Medication clicked");
         }
     }
 
-    public void deleteSymptom()
+    public void deleteMedication()
     {
-        if (mSymptom != null)
+        if (mMedication != null)
         {
             if(db == null)
             {
@@ -177,13 +192,13 @@ public class Symptom_view extends Fragment implements
                 public void onClick(DialogInterface dialog, int i)
                 {
                     //User is sure.. close dialog and delete
-                    String deletedName = mSymptom.getName();
+                    String deletedName = mMedication.getName();
 
                     //createToast("Deleted : " + deletedName);
                     dialog.dismiss();
-                    db.deleteSymptomById(mSymptom.get_id());
+                    db.deleteMedicationById(mMedication.getId());
                     //Return to symptoms page
-                    goBackToSymptoms();
+                    goBackToMedications();
                 }
             });
 
@@ -196,7 +211,7 @@ public class Symptom_view extends Fragment implements
                     //Don't delete anything
                     dialog.dismiss();
                     //Return to symptoms page
-                    goBackToSymptoms();
+                    goBackToMedications();
                 }
             });
 
@@ -250,21 +265,21 @@ public class Symptom_view extends Fragment implements
     }
 
     @Override
-    public void onFinishEditDialog(long id, String inputName, String inputDesc)
+    public void onFinishEditMedDialog(long id, String inputName, String inputDesc, int inputAmount, int inputFrequency)
     {
-        Log.i("SymptomsEdit", inputName + " " + inputDesc + Long.toString((id)));
-        //Update this symptom in the DB
-        Symptom editedSymptom = new Symptom(inputName, inputDesc, 0);
+        Log.i("MedicationsEdit", inputName + " " + inputDesc + " " + Long.toString((id)));
+        //Update this medication in the DB
+        Medication editedMedication = new Medication(inputName, inputDesc, inputAmount, inputFrequency);
 
         DatabaseHelper handler = DatabaseHelper.getInstance(this.getContext());
         if (handler != null)
         {
-            handler.updateSymptomById((int)id, editedSymptom);
+            handler.updateMedicationById((int)id, editedMedication);
         }
 
         if (getArguments() != null)
         {
-            getSymptomDetails(getArguments().getInt("ID"));
+            getMedicationDetails(getArguments().getInt("ID"));
         }
         createToast(inputName + " edited.");
     }

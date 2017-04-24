@@ -25,14 +25,16 @@ import android.widget.ListView;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link Symptoms.OnFragmentInteractionListener} interface
+ * {@link Medications.OnFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link Symptoms#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class Medications extends Fragment implements
         AddMedDialog.AddMedDialogListener,
-        AddMedDialog.OnFragmentInteractionListener
+        AddMedDialog.OnFragmentInteractionListener,
+        EditMedDialog.EditMedDialogListener,
+        EditMedDialog.OnFragmentInteractionListener
 
 {
 
@@ -52,15 +54,12 @@ public class Medications extends Fragment implements
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Symptoms.
+
+     * @return A new instance of fragment Medications.
      */
-    // TODO: Rename and change types and number of parameters
-    public static Symptoms newInstance(String param1, String param2)
+    public static Medications newInstance()
     {
-        Symptoms fragment = new Symptoms();
+        Medications fragment = new Medications();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -145,57 +144,39 @@ public class Medications extends Fragment implements
 
         //Find the listView we want to populate
         lvItems = (ListView) this.getView().findViewById(R.id.medItems);
-        setUpLongClick();
+
+        setUpShortClick(); //View item
         //Setup cursor adapter, added getview,getConext here
         cursorAdapter = new MedicationCursorAdapter(this.getView().getContext(), medCursor);
         //Attach the cursor adapter to the listView
         lvItems.setAdapter(cursorAdapter);
     }
 
-    public void setUpLongClick()
+    public void setUpShortClick()
     {
+        final FragmentManager fragmentManager = this.getActivity().getSupportFragmentManager();
+
         lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l)
-            {
-                //TODO: Bring up edit dialog for medication with this ID:
-                Log.i("TAG", "ID: " + Long.toString(l));
-                registerForContextMenu(adapterView);
 
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Log.i("ShortClickMedication", "ID: " + Long.toString(l));
+                //Start symptom_view fragment and pass bundle with data from db
+                Fragment medicationFrag = new Medication_view();
+                Bundle args = new Bundle();
+                args.putInt("ID", (int) l);
+                medicationFrag.setArguments(args);
+
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.flContent, medicationFrag)
+                        .commit();
             }
         });
-
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        menu.setHeaderTitle("Context Menu");
-        menu.add(0, v.getId(), 0, "Edit");
-        menu.add(0, v.getId(), 0, "Delete");
-
-        //AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
-        //long itemId = info.id;
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        if(item.getTitle()=="Edit")
-        {
-            editMedication(item);
-
-        }
-        else if(item.getTitle()=="Delete")
-        {
-            deleteMedication(item);
-        }
-        else
-        {
-            return false;
-        }
-        return true;
-    }
 
     public void editMedication(MenuItem item)
     {
@@ -297,30 +278,27 @@ public class Medications extends Fragment implements
         populateMedications();
     }
 
-    //TODO
-//    @Override
-//    public void onFinishEditDialog(long id, String inputName, String inputDesc)
-//    {
-//        Log.i("SymptomsEdit", inputName + " " + inputDesc + Long.toString((id)));
-//        //Update this symptom in the DB
-//        Symptom editedSymptom = new Symptom(inputName, inputDesc, 0);
-//
-//        if (handler != null)
-//        {
-//            handler.updateSymptomById((int)id, editedSymptom);
-//        }
-//
-//        //"Refresh" the fragment with new content
-//        populateMedications();
-//    }
+    @Override
+    public void onFinishEditMedDialog(long id, String inputName, String inputDesc, int inputAmount, int inputFrequency)
+    {
+        Log.i("MedicationsEdit", inputName + " " + " " + inputDesc + Long.toString((id)));
+        //Update this medication in the DB
+        Medication editedMedication = new Medication(inputName, inputDesc, inputAmount, inputFrequency);
 
+        if (handler != null)
+        {
+            handler.updateMedicationById((int)id, editedMedication);
+        }
+
+        //"Refresh" the fragment with new content
+        populateMedications();
+    }
 
     @Override
     public void onFragmentInteraction(Uri uri)
     {
 
     }
-
 
 
 

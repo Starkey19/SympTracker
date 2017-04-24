@@ -1,0 +1,158 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+<RelativeLayout
+    android:id="@+id/symptom_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="1dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/medItem_icon"
+        android:transitionName="medItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginTop="20dp"
+
+        android:layout_alignParentTop="true"
+        android:background="#eeeeee"
+        android:contentDescription="Icon"
+        android:src="@drawable/ic_local_hospital" />
+
+    <TextView
+        android:id="@+id/lblMedicationName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:text="Medication Name:"
+        android:layout_alignTop="@+id/medItem_icon"
+        android:layout_toEndOf="@+id/medItem_icon"/>
+
+    <TextView
+        android:id="@+id/tvMedicationName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="20dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/lblMedicationName"
+        android:layout_toEndOf="@+id/medItem_icon"/>
+
+    <TextView
+        android:id="@+id/lblMedicationDesc"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/tvMedicationName"
+        android:layout_toEndOf="@+id/medItem_icon"
+        android:text="Medication Description:"/>
+
+    <TextView
+        android:id="@+id/tvMedicationDescription"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="20dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/lblMedicationDesc"
+        android:layout_toEndOf="@+id/medItem_icon"/>
+
+    <TextView
+        android:id="@+id/lblMedicationAmount"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/tvMedicationDescription"
+        android:layout_toEndOf="@+id/medItem_icon"
+        android:text="Medication Amount: "/>
+
+    <TextView
+        android:id="@+id/tvMedicationAmount"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="20dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:inputType="number"
+        android:layout_below="@+id/lblMedicationAmount"
+        android:layout_toEndOf="@+id/medItem_icon"/>
+
+    <TextView
+        android:id="@+id/lblMedicationFrequency"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/whiteGrey"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/tvMedicationAmount"
+        android:layout_toEndOf="@+id/medItem_icon"
+        android:text="Medication Frequency per week:"/>
+
+    <TextView
+        android:id="@+id/tvMedicationFrequency"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="20dp"
+        android:background="#eeeeee"
+        android:gravity="center_horizontal"
+        android:inputType="number"
+        android:layout_below="@+id/lblMedicationFrequency"
+        android:layout_toEndOf="@+id/medItem_icon"/>
+
+
+    <Button
+        android:id="@+id/btnMedBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/medItem_icon"
+        android:layout_below="@+id/tvMedicationFrequency"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="10dp"
+        android:background="@drawable/button_custom"
+        android:text="Back"/>
+
+    <Button
+        android:id="@+id/btnMedEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_custom"
+        android:text="Edit"
+        android:layout_alignBaseline="@+id/btnMedDelete"
+        android:layout_alignBottom="@+id/btnMedDelete"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/btnMedDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_custom"
+        android:text="Delete"
+        android:layout_alignBaseline="@+id/btnMedBack"
+        android:layout_alignBottom="@+id/btnMedBack"
+        android:layout_marginRight="10dp"
+        android:layout_alignEnd="@+id/tvMedicationFrequency"
+        />
+
+    </RelativeLayout>
+</ScrollView>
