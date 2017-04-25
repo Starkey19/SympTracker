@@ -1,6 +1,10 @@
 package jpstarkey.symptracker;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,11 +13,18 @@ import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.takisoft.fix.support.v7.preference.EditTextPreference;
+import com.takisoft.fix.support.v7.preference.PreferenceCategory;
 import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
+
+import java.util.Calendar;
 
 
 /**
@@ -30,6 +41,7 @@ public class SettingsFragment
 
     private OnFragmentInteractionListener mListener;
     private ListPreference mListPreference;
+    private PendingIntent pendingIntent;
 
     public SettingsFragment()
     {
@@ -69,6 +81,7 @@ public class SettingsFragment
     @Override
     public void onCreatePreferencesFix(@Nullable Bundle savedInstanceState, String rootKey)
     {
+
         setPreferencesFromResource(R.xml.preferences, rootKey);
     }
 
@@ -78,6 +91,20 @@ public class SettingsFragment
     {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_settings, container, false);
+        Intent alarmIntent = new Intent(this.getContext(), myAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this.getContext(), 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        //test();
+
+        Preference reminder = getPreferenceManager().findPreference("reminder_time");
+        reminder.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
+        {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue)
+            {
+                notifyChanged(newValue.toString());
+                return false;
+            }
+        });
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -110,6 +137,36 @@ public class SettingsFragment
     {
         super.onDetach();
         mListener = null;
+    }
+
+
+
+    public void notifyChanged(String reminderTime)
+    {
+        AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+
+
+        /* Set the alarm to start at 21:30 PM */
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 17);
+        calendar.set(Calendar.MINUTE, 05);
+
+
+        Log.i("TAG", "calender" + calendar.getTime().toString());
+
+
+        //Split the reminderTime preference string into hours:minutes
+        String[] separated = reminderTime.split(":");
+        calendar.set(Calendar.HOUR_OF_DAY, Integer.valueOf(separated[0]));
+        calendar.set(Calendar.MINUTE, Integer.valueOf(separated[1]));
+
+
+        Log.i("TAG", "reminder_time" + reminderTime);
+        Log.i("TAG", "caldnerinMillis " + calendar.getTimeInMillis());
+
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
     /**

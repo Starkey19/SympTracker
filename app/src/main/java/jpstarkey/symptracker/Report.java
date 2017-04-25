@@ -143,7 +143,6 @@ public class Report extends Fragment
         XAxis xAxis = mChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
         xAxis.setGranularity(1f);
-       // xAxis.setLabelCount(7); //Week
 
         bindChart();
         return view;

@@ -150,8 +150,6 @@ public class Symptoms extends Fragment implements
         //Find the listView we want to populate
         lvItems = (ListView) this.getView().findViewById(R.id.sympItems);
 
-        //setUpLongClick();   //Context menu
-
         setUpShortClick(); //View item
 
         //Setup cursor adapter, added getview,getConext here

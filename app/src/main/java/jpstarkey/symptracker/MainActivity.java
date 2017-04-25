@@ -125,7 +125,6 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
-
     private TextView currentTotalSteps;
     private Context mContext;
 
@@ -222,7 +221,6 @@ public class MainActivity extends AppCompatActivity
                                     GlobalState state = ((GlobalState) getApplicationContext());
                                     state.setMClient(mClient);
                                     state.setDailySteps();
-
                                     //Update the currentTotalSteps on the daily report page
                                     currentTotalSteps = (TextView) findViewById(R.id.tvTotalSteps);
                                     if (currentTotalSteps != null)

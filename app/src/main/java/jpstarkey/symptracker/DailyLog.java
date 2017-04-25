@@ -9,6 +9,7 @@ public class DailyLog
     int _id;
     String date;
     int pain;
+    String notes;
 
     //Default empty constructor
     public DailyLog()
@@ -16,10 +17,11 @@ public class DailyLog
 
     }
 
-    public DailyLog(String date, int pain)
+    public DailyLog(String date, int pain, String notes)
     {
         this.date = date;
         this.pain = pain;
+        this.notes = notes;
     }
 
     public int get_id()
@@ -40,6 +42,15 @@ public class DailyLog
     public void setDate(String date)
     {
         this.date = date;
+    }
+    public String getNotes()
+    {
+        return notes;
+    }
+
+    public void setNotes(String notes)
+    {
+        this.notes = notes;
     }
 
     public int getPain()

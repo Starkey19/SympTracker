@@ -11,8 +11,6 @@
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!--Preferences / settings values-->
     <string name="title_first_section">Notification settings</string>
@@ -34,7 +32,7 @@
         <item>two v</item>
     </string-array>
     <string name="title_intent_preference">intent title</string>
-    <string name="home_welcome_text">Welcome to SympTracker, Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus scelerisque enim nec ornare. In hac habitasse platea dictumst. Donec eget elit lobortis ex rhoncus egestas fringilla eu est. Aenean volutpat dui nec porttitor elementum. Sed sit amet fermentum dolor. Aenean bibendum consectetur imperdiet.</string>
+    <string name="home_welcome_text">Welcome to SympTracker. On the Activity Report page you can view your activity data. On the Daily report page you can input your pain levels and assign symptoms and notes to each day of the week. If you get lost use the navigation menu on the left!</string>
     <string name="info_dailyLog">Below you\'ll find the information for your current activity. The total steps you\'ve performed so far today, and your input for your current pain level and any symptoms you want to record for today are below.</string>
 
     <!--TITLES-->

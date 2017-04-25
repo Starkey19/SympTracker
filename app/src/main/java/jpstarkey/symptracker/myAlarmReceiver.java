@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,7 +28,11 @@ public class myAlarmReceiver extends BroadcastReceiver
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         Date resultdate = new Date(yourmilliseconds);
 
-        createNotification(context, 0, R.drawable.ic_accessibility, "It's time to input your daily pain level! - ", sdf.format(resultdate));
+        SharedPreferences preferencesCompat = PreferenceManager.getDefaultSharedPreferences(context);
+        if (preferencesCompat.getBoolean("daily_reminder", true) == true)
+        {
+            createNotification(context, 0, R.drawable.ic_accessibility, "It's time to input your daily pain level! - ", sdf.format(resultdate));
+        }
     }
 
     private void createNotification(Context context, int nId, int iconRes, String title, String body)
@@ -34,14 +40,9 @@ public class myAlarmReceiver extends BroadcastReceiver
         Intent intent = new Intent(context, Daily.class);
         intent.putExtra("menuFragment", "nav_daily_fragment");
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         int requestID = (int) System.currentTimeMillis();
-
         int flags = PendingIntent.FLAG_CANCEL_CURRENT;
-
-//        PendingIntent pIntent = PendingIntent.getActivity(context, requestID, intent, flags);
-        PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
+                PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
         Notification noti = new NotificationCompat.Builder(context)
                 .setSmallIcon(iconRes)
                 .setContentTitle(title)

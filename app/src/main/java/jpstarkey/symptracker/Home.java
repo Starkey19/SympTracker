@@ -5,11 +5,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -87,28 +89,7 @@ public class Home extends Fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         Intent alarmIntent = new Intent(this.getContext(), myAlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this.getContext(), 0, alarmIntent, 0);
-
-        view.findViewById(R.id.btnStart).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                start();
-            }
-        });
-
-        view.findViewById(R.id.btnStop).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cancel();
-            }
-        });
-
-        view.findViewById(R.id.btnStartAt10).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startAt10();
-            }
-        });
+        pendingIntent = PendingIntent.getBroadcast(this.getContext(), 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);//0);
 
         return view;
     }
@@ -130,48 +111,7 @@ public class Home extends Fragment
         Toast.makeText(this.getContext(), "Alarm Canceled", Toast.LENGTH_SHORT).show();
     }
 
-    public void startAt10() {
-        AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        int interval = 1000 * 60 * 20;
 
-        /* Set the alarm to start at 21:30 PM */
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 21);
-        calendar.set(Calendar.MINUTE, 35);
-
-        Log.i("TAG", calendar.getTime().toString());
-
-        /* Repeating on every 20 minutes interval */
-        manager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                1000 * 60 * 1, pendingIntent);
-    }
-
-    //Sets a recurring alarm every half hour
-    public void scheduleAlarm()
-    {
-        //Intent to execute the AlarmReceiver
-        Intent intent = new Intent(this.getContext().getApplicationContext(), myAlarmReceiver.class);
-        //Create a pendingIntent to be triggered when the alarm goes off
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this.getContext(), myAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        //Setup periodic alarm every 5 seconds
-        long firstMillis = System.currentTimeMillis();
-
-        AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis,
-                AlarmManager.INTERVAL_FIFTEEN_MINUTES, pIntent);
-    }
-
-    public void cancelAlarm()
-    {
-        Intent intent = new Intent(this.getContext().getApplicationContext(), myAlarmReceiver.class);
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this.getContext(), myAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        alarm.cancel(pIntent);
-    }
     //endregion
 
     // TODO: Rename method, update argument and hook method into UI event

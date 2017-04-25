@@ -127,9 +127,7 @@ public class Medications extends Fragment implements
         }
     }
 
-    // This event is triggered soon after onCreateView().
-    // onViewCreated() is only called if the view returned from onCreateView() is non-null.
-    // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState)
     {
@@ -177,7 +175,6 @@ public class Medications extends Fragment implements
         });
     }
 
-
     public void editMedication(MenuItem item)
     {
         //Retrieve medication from cursor using id
@@ -192,13 +189,6 @@ public class Medications extends Fragment implements
 
         Medication med = new Medication(prevName, prevDesc, prevAmount, prevFreq);
 
-        //TODO: wont work
-//        FragmentManager fm = getFragmentManager();
-//        EditDialog editDialog = EditDialog.newInstance("Edit Medication", itemId, med);
-//        editDialog.setTargetFragment(Medications.this, 300);
-//        editDialog.show(fm, "edit_medication");
-//
-//        Log.i("Medications", "edit Medication clicked");
     }
 
     public void deleteMedication(final MenuItem item)
@@ -231,10 +221,6 @@ public class Medications extends Fragment implements
 
         AlertDialog alert = builder.create();
         alert.show();
-
-
-
-
 
         Log.i("Medications", "delete Medication clicked");
     }
@@ -299,8 +285,6 @@ public class Medications extends Fragment implements
     {
 
     }
-
-
 
     /**
      * This interface must be implemented by activities that contain this

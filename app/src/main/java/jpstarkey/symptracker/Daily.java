@@ -225,9 +225,10 @@ public class Daily extends Fragment
                 Date cDate = new Date(); //Current date
                 String sDate = new SimpleDateFormat("dd-MM-yyyy").format(cDate);
                 //Insert daily log into DB
-                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress());
+                DailyLog dailyLog = new DailyLog(sDate, seekPainLevel.getProgress(),
+                        etDailyNotes.getText().toString());
                 db.addDailyLogWithSymptoms(dailyLog, selectedSymptoms);
-                createToast("Pain level and symptoms submitted for " + sDate);
+                createToast("Pain level, notes and symptoms submitted for " + sDate);
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener()
         {

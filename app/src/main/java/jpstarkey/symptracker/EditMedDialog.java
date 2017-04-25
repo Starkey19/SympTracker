@@ -84,8 +84,8 @@ public class EditMedDialog extends DialogFragment implements TextView.OnEditorAc
         long id = getArguments().getLong("itemId");
         listener.onFinishEditMedDialog(id, mMedicationName.getText().toString(),
                 mMedicationDesc.getText().toString(),
-                Integer.getInteger(mMedicationAmount.getText().toString()),
-                Integer.getInteger(mMedicationFreq.getText().toString()));
+                Integer.parseInt(mMedicationAmount.getText().toString()),
+                Integer.parseInt(mMedicationFreq.getText().toString()));
         dismiss();
     }
 

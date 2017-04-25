@@ -26,7 +26,6 @@ public class SymptomCursorAdapter extends CursorAdapter
     public View newView(Context context, Cursor cursor, ViewGroup parent)
     {
         return LayoutInflater.from(context).inflate(R.layout.item_symptom, parent, false);
-
     }
 
     @Override
@@ -34,15 +33,11 @@ public class SymptomCursorAdapter extends CursorAdapter
     {
         //Get fields
         TextView sympName = (TextView) view.findViewById(R.id.symptomName);
-        //TextView sympBody = (TextView) view.findViewById(R.id.symptomBody);
 
         //Extract from cursor
         String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-        //String body = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-        //pain level int
 
         //Populate fields with extracted properties
         sympName.setText(name);
-        //sympBody.setText(body);
     }
 }

@@ -34,7 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     //Database info
     private static final String DATABASE_NAME = "sympDatabase";
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
     private static String DB_PATH = "";
 
     //Table names
@@ -47,6 +47,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static final String KEY_DAILY_ID = "_id";
     private static final String KEY_DAILY_PAIN = "daily_pain"; //Overall/average daily pain level? TODO
     private static final String KEY_DAILY_DATE = "date";
+    private static final String KEY_DAILY_NOTES = "notes";
 
     //Pain levels table
     private static final String KEY_DAILY_SYMPTOMS_ID = "_id";
@@ -70,8 +71,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //region Database setup methods
     public static synchronized DatabaseHelper getInstance(Context context)
     {
-        //use the application context which will ensure that you don't
-        //accidentally leak and Activity's context
         if (sInstance == null)
         {
             sInstance = new DatabaseHelper(context.getApplicationContext());
@@ -82,9 +81,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //Constructor private so that getInstance must be called
     private DatabaseHelper(Context context)
     {
-
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
         {
             DB_PATH = context.getFilesDir().getAbsolutePath().replace("files", "databases") + File.separator;
@@ -128,7 +125,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
                 "(" +
                     KEY_DAILY_ID + " INTEGER PRIMARY KEY, " +
                     KEY_DAILY_DATE + " TEXT, " +              //DATE stored as TEXT DD/MM/YYYY
-                    KEY_DAILY_PAIN + " INTEGER " +
+                    KEY_DAILY_PAIN + " INTEGER, " +
+                    KEY_DAILY_NOTES + " TEXT " +
                 ")";
 
         //Link table for daily log and stored symptoms:
@@ -137,8 +135,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     KEY_DAILY_SYMPTOMS_ID + " INTEGER PRIMARY KEY, " +
                     KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK + " INTEGER, " +
                     KEY_DAILY_SYMPTOMS_DAILY_ID_FK + " INTEGER, " +
-                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK +") REFERENCES " + TABLE_SYMPTOMS + "(" + KEY_SYMPTOM_ID + ") ON DELETE CASCADE," +
-                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_DAILY_ID_FK +") REFERENCES " + TABLE_DAILY + "(" + KEY_DAILY_ID + ") ON DELETE CASCADE)";
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_SYMPTOM_ID_FK +") REFERENCES "
+                + TABLE_SYMPTOMS + "(" + KEY_SYMPTOM_ID + ") ON DELETE CASCADE," +
+                    " FOREIGN KEY ("+ KEY_DAILY_SYMPTOMS_DAILY_ID_FK +") REFERENCES "
+                + TABLE_DAILY + "(" + KEY_DAILY_ID + ") ON DELETE CASCADE)";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_MEDICATIONS_TABLE);
@@ -176,7 +176,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
     {
         //create/open the database for writing
         SQLiteDatabase db = getWritableDatabase();
-
         //Wrap insert inside a transaction for performance
         db.beginTransaction();
         try
@@ -200,7 +199,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
     {
         //create/open the database for writing
         SQLiteDatabase db = getWritableDatabase();
-
         //Wrap insert inside a transaction for performance
         db.beginTransaction();
         try
@@ -226,7 +224,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
     {
         //create/open the database for writing
         SQLiteDatabase db = getWritableDatabase();
-
         //Wrap insert inside a transaction for performance
         db.beginTransaction();
         try
@@ -234,6 +231,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
             ContentValues values = new ContentValues();
             values.put(KEY_DAILY_DATE, daily.date);
             values.put(KEY_DAILY_PAIN, daily.pain);
+            values.put(KEY_DAILY_NOTES, daily.notes);
 
             long _id = db.insertOrThrow(TABLE_DAILY, null, values);
             db.setTransactionSuccessful();
@@ -259,6 +257,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
             ContentValues values = new ContentValues();
             values.put(KEY_DAILY_DATE, daily.date);
             values.put(KEY_DAILY_PAIN, daily.pain);
+            values.put(KEY_DAILY_NOTES, daily.notes);
 
             daily_id = db.insertOrThrow(TABLE_DAILY, null, values);
             db.setTransactionSuccessful();
@@ -268,7 +267,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             db.endTransaction();
         }
-
         //Now insert the association between symptoms and this daily log
         for(Symptom symptom : symptoms)
         {
@@ -288,7 +286,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
                 db.endTransaction();
             }
         }
-
     }
 
 
@@ -341,8 +338,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             if (cursor.moveToFirst())
             {
-                newDailyLog.setDate(cursor.getString(cursor.getColumnIndex(KEY_DAILY_DATE)));
-                newDailyLog.setPain(cursor.getInt(cursor.getColumnIndex(KEY_DAILY_PAIN)));
+                newDailyLog.setDate(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DAILY_DATE)));
+                newDailyLog.setPain(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_DAILY_PAIN)));
+                newDailyLog.setNotes(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DAILY_NOTES)));
             }
         } catch (Exception e)
         {
@@ -440,7 +438,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     DailyLog newLog = new DailyLog();
                     newLog.date = cursor.getString(cursor.getColumnIndex(KEY_DAILY_DATE));
                     newLog.pain = cursor.getInt(cursor.getColumnIndex(KEY_DAILY_PAIN));
-
+                    newLog.notes = cursor.getString(cursor.getColumnIndex(KEY_DAILY_NOTES));
                     logs.add(newLog);
 
                 } while(cursor.moveToNext());

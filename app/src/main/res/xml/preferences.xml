@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
+        android:key="notif_cat"
         android:title="@string/title_first_section">
 
         <CheckBoxPreference
@@ -9,6 +10,10 @@
             android:title="@string/title_checkbox_preference"
             android:defaultValue="true"/>
 
+        <EditTextPreference
+            android:key="reminder_time"
+            android:title="Time of daily reminder"
+            android:defaultValue="17:15"/>
         <!--Date time?-->
 
 
@@ -19,7 +24,8 @@
 
         <CheckBoxPreference
             android:key="gfit_consent"
-            android:title="Consent to Google fit activity data retrieval."
+            android:title="Consent to Google fit usage"
+
             android:defaultValue="false"/>
 
     </PreferenceCategory>

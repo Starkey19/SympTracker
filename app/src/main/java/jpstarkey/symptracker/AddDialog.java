@@ -37,7 +37,7 @@ public class AddDialog extends DialogFragment implements TextView.OnEditorAction
         // Required empty public constructor
     }
 
-    //Interface listener for adding symmptoms via dialogs
+    //Interface listener for adding symptoms via dialogs
     public interface AddDialogListener
     {
         void onFinishAddDialog(String inputName, String inputDesc);
